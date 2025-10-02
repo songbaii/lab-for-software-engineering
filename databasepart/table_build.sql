@@ -5,8 +5,12 @@ drop table if EXISTS user;
 drop Table if EXISTS movie_genre;
 drop table if EXISTS movie_pro_company;
 drop table if EXISTS movie_pro_country;
+drop table if EXISTS country;
+drop table if EXISTS company;
 drop Table if EXISTS movie;
 drop table if EXISTS genre_table;
+drop table if exists movie_cast;
+drop table if exists person;
 CREATE table if NOT EXISTS user(
     user_name VARCHAR(50),
     user_id int,
@@ -48,25 +52,47 @@ CREATE TABLE if NOT EXISTS genre_table(
 
 create Table if not exists movie_genre(# 影片的类别
     movie_id int,
-    genre int,
+    genre_id int,
     Foreign Key (movie_id) REFERENCES movie(movie_id),
-    Foreign Key (genre) REFERENCES genre_table(genre_id),
-    PRIMARY key(movie_id, genre)
+    Foreign Key (genre_id) REFERENCES genre_table(genre_id),
+    PRIMARY key(movie_id, genre_id)
+);
+
+CREATE table if not exists country(
+    country_name VARCHAR(50),
+    country_id int PRIMARY key
 );
 
 CREATE Table if not exists movie_pro_country(
     movie_id int,
-    pro_country VARCHAR(50),
+    country_id int,
     Foreign Key (movie_id) REFERENCES movie(movie_id),
-    PRIMARY key(movie_id, pro_country)
+    Foreign Key (country_id) REFERENCES country(country_id),
+    PRIMARY key(movie_id, country_id)
 );
 
+CREATE table if not exists company(
+    company_name VARCHAR(50),
+    company_id int PRIMARY KEY
+);
 
 create table if not exists movie_pro_company(
     movie_id int,
-    company_name VARCHAR(50),
+    company_id int,
     Foreign Key (movie_id) REFERENCES movie(movie_id),
-    PRIMARY key(movie_id, company_name)
+    Foreign Key (company_id) REFERENCES company(company_id),
+    PRIMARY key(movie_id, company_id)
 );
 
+create table if not exists person(
+    person_id int PRIMARY KEY,
+    person_name VARCHAR(50)
+);
 
+create table if not exists movie_cast(
+    movie_id int,
+    cast_id int,
+    Foreign Key (movie_id) REFERENCES movie(movie_id),
+    Foreign Key (cast_id) REFERENCES person(person_id),
+    PRIMARY key(movie_id, cast_id)
+);
