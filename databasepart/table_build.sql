@@ -7,15 +7,15 @@ drop table if EXISTS movie_pro_company;
 drop table if EXISTS movie_pro_country;
 drop table if EXISTS country;
 drop table if EXISTS company;
+drop table if exists movie_cast;
 drop Table if EXISTS movie;
 drop table if EXISTS genre_table;
-drop table if exists movie_cast;
+
 drop table if exists person;
 CREATE table if NOT EXISTS user(
     user_name VARCHAR(50),
-    user_id int,
-    pass_word VARCHAR(50) NOT NULL,
-    PRIMARY KEY(user_name, user_id)
+    user_id int primary key,
+    pass_word VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE if NOT EXISTS movie(
@@ -32,13 +32,12 @@ CREATE TABLE if NOT EXISTS movie(
 );
 
 CREATE TABLE if NOT exists user_judge(
-    user_name VARCHAR(50),
     user_id int,
     movie_id int,
     comment int,# 这里限制一下比如说1-10
-    Foreign Key (user_name, user_id) REFERENCES user(user_name, user_id),
+    Foreign Key (user_id) REFERENCES user(user_id),
     FOREIGN KEY (movie_id) REFERENCES movie(movie_id),
-    PRIMARY KEY(user_name, user_id, movie_id),
+    PRIMARY KEY(user_id, movie_id),
     check (comment>=1 and comment<=10)
 );
 #至此用户部分完成
