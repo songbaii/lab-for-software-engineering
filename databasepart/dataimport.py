@@ -36,22 +36,33 @@ def import_movie_data_from_csv(csv_file_path):
     print(f"开始从 {csv_file_path} 导入电影基本信息...")
 
     # 读取CSV文件
-    df = pd.read_csv(csv_file_path, skiprows=1)
-
+    df = pd.read_csv(csv_file_path, skiprows=0)
     conn = create_db_connection()
     cursor = conn.cursor()
-
     try:
         # 导入电影表
         for _, row in df.iterrows():
             # 处理可能的空值
-            budget = int(row['budget']) if pd.notna(row['budget']) and row['budget'] != '' else 0
-            popularity = int(float(row['popularity'])) if pd.notna(row['popularity']) and row['popularity'] != '' else 0
-            revenue = int(row['revenue']) if pd.notna(row['revenue']) and row['revenue'] != '' else 0
-            vote_count = int(row['vote_count']) if pd.notna(row['vote_count']) and row['vote_count'] != '' else 0
-            vote_average = int(float(row['vote_average'])) if pd.notna(row['vote_average']) and row[
-                'vote_average'] != '' else 0
-
+            if pd.notna(row['budget']) and row['budget'] != '' :
+                budget = int(row['budget'] / 10000)
+            else:
+                break
+            if pd.notna(row['popularity']) and row['popularity'] != '':
+                popularity = int(float(row['popularity']))
+            else:
+                break
+            if pd.notna(row['revenue']) and row['revenue'] != '':
+                revenue = int(row['revenue'] / 10000)
+            else:
+                break
+            if pd.notna(row['vote_count']) and row['vote_count'] != '':
+                vote_count = int(row['vote_count'])
+            else:
+                break
+            if pd.notna(row['vote_average']) and row['vote_average'] != '':
+                vote_average = int(float(row['vote_average']))
+            else:
+                break
             # 处理日期
             release_date = None
             if pd.notna(row['release_date']) and row['release_date'] != '':
@@ -237,24 +248,17 @@ def import_with_encoding_check(csv_file_path, import_function):
 
 def main():
     """主函数"""
-    try:
-        # 文件路径
-        movie_csv_file = "tmdb_5000_movies.csv"  # 电影基本信息CSV
-        cast_csv_file = "tmdb_5000_credits.csv"  # 演员信息CSV
+    # 文件路径
+    movie_csv_file = "movies.csv"  # 电影基本信息CSV
+    cast_csv_file = "credits.csv"  # 演员信息CSV
 
-        # 导入电影基本信息
-        import_with_encoding_check(movie_csv_file, import_movie_data_from_csv)
+    # 导入电影基本信息
+    import_with_encoding_check(movie_csv_file, import_movie_data_from_csv)
 
-        # 导入演员和工作人员信息
-        import_with_encoding_check(cast_csv_file, import_cast_data_from_csv)
+    # 导入演员和工作人员信息
+    import_with_encoding_check(cast_csv_file, import_cast_data_from_csv)
 
-        print("所有数据导入完成！")
-
-    except FileNotFoundError as e:
-        print(f"文件未找到: {e}")
-    except Exception as e:
-        print(f"导入过程中出错: {e}")
-
+    print("所有数据导入完成！")
 
 if __name__ == "__main__":
     main()

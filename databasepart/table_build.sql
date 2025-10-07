@@ -20,7 +20,7 @@ CREATE table if NOT EXISTS user(
 
 CREATE TABLE if NOT EXISTS movie(
     movie_id int PRIMARY KEY,
-    movie_name VARCHAR(50),
+    movie_name VARCHAR(100),
     budget int,
     original_language varchar(5),
     popularity int,# 这里为了存储空间，考虑使用int
