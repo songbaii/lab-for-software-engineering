@@ -71,7 +71,7 @@ CREATE Table if not exists movie_pro_country(
 );
 
 CREATE table if not exists company(
-    company_name VARCHAR(50),
+    company_name VARCHAR(100),
     company_id int PRIMARY KEY
 );
 

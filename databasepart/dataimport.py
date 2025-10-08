@@ -98,7 +98,7 @@ def import_movie_data_from_csv(csv_file_path):
             )
 
             insert_movie = """
-                           INSERT INTO movie (movie_id, movie_name, budget, original_language,
+                           INSERT ignore INTO movie (movie_id, movie_name, budget, original_language,
                                               popularity, release_date, revenue, vote_count,
                                               vote_average, overview)
                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) \
@@ -128,15 +128,15 @@ def import_movie_data_from_csv(csv_file_path):
             countries = safe_json_loads(row['production_countries'])
             for country in countries:
                 # 先检查国家是否存在
-                check_country = "SELECT country_id FROM country WHERE country_id = %s"
+                check_country = "SELECT country_short_name FROM country WHERE country_short_name = %s"
                 cursor.execute(check_country, (country['iso_3166_1'],))
                 if not cursor.fetchone():
-                    insert_country = "INSERT INTO country (country_id, country_name) VALUES (%s, %s)"
+                    insert_country = "INSERT INTO country (country_short_name, country_full_name) VALUES (%s, %s)"
                     cursor.execute(insert_country, (country['iso_3166_1'], country['name']))
 
                 # 插入电影国家关系
                 insert_movie_country = """
-                                       INSERT IGNORE INTO movie_pro_country (movie_id, country_id)
+                                       INSERT IGNORE INTO movie_pro_country (movie_id, country_short_name)
                                        VALUES (%s, %s) \
                                        """
                 cursor.execute(insert_movie_country, (int(row['id']), country['iso_3166_1']))
