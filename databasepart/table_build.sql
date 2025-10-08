@@ -57,17 +57,17 @@ create Table if not exists movie_genre(# 影片的类别
     PRIMARY key(movie_id, genre_id)
 );
 
-CREATE table if not exists country(
-    country_name VARCHAR(50),
-    country_id int PRIMARY key
+CREATE table if not exists country(# 建立这个表主要是为了节省空间
+    country_full_name VARCHAR(50),
+    country_short_name VARCHAR(10) PRIMARY key
 );
 
 CREATE Table if not exists movie_pro_country(
     movie_id int,
-    country_id int,
+    country_short_name VARCHAR(10) ,
     Foreign Key (movie_id) REFERENCES movie(movie_id),
-    Foreign Key (country_id) REFERENCES country(country_id),
-    PRIMARY key(movie_id, country_id)
+    Foreign Key (country_short_name) REFERENCES country(country_short_name),
+    PRIMARY key(movie_id, country_short_name)
 );
 
 CREATE table if not exists company(

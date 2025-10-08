@@ -43,8 +43,20 @@ def import_movie_data_from_csv(csv_file_path):
         # 导入电影表
         for _, row in df.iterrows():
             # 处理可能的空值
-            if pd.notna(row['budget']) and row['budget'] != '' :
+            if pd.notna(row['id']) and row['id'] != '':
+                id = int(row['id'])
+            else:
+                break
+            if pd.notna(row['title']) and row['title'] != '':
+                title = row['title']
+            else:
+                break
+            if pd.notna(row['budget']) and row['budget'] != '':
                 budget = int(row['budget'] / 10000)
+            else:
+                break
+            if pd.notna('original_language') and row['original_language'] != '':
+                original_language = row['original_language']
             else:
                 break
             if pd.notna(row['popularity']) and row['popularity'] != '':
@@ -64,24 +76,25 @@ def import_movie_data_from_csv(csv_file_path):
             else:
                 break
             # 处理日期
-            release_date = None
             if pd.notna(row['release_date']) and row['release_date'] != '':
-                try:
                     release_date = pd.to_datetime(row['release_date']).strftime('%Y-%m-%d')
-                except:
-                    release_date = None
-
+            else:
+                break
+            if pd.notna(row['overview']) and row['overview'] != '':
+                overview = row['overview']
+            else:
+                break
             movie_data = (
-                int(row['id']),
-                row['title'],
+                id,
+                title,
                 budget,
-                row['original_language'],
+                original_language,
                 popularity,
                 release_date,
                 revenue,
                 vote_count,
                 vote_average,
-                row['overview'] if pd.notna(row['overview']) else ''
+                overview
             )
 
             insert_movie = """
