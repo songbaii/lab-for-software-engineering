@@ -1,6 +1,14 @@
 import pandas as pd
 
 
+def is_integer(value):
+    try:
+        int(value)  # 尝试将值转换为整数
+        return True
+    except ValueError:
+        return False  # 如果不能转换成整数，返回 False
+
+
 def clean_csv_files_specific(file1_path, file2_path, output1_path, output2_path,
                               id_column = 'id', check_columns1=None, check_columns2=None):
     """
@@ -17,17 +25,22 @@ def clean_csv_files_specific(file1_path, file2_path, output1_path, output2_path,
     """
 
     # 读取CSV文件
-    df1 = pd.read_csv(file1_path, encoding='utf-8', encoding_errors = 'ignore')
-    df2 = pd.read_csv(file2_path, encoding='utf-8', encoding_errors = 'ignore')
-
+    df1 = pd.read_csv(file1_path, encoding='utf-8', encoding_errors = 'ignore', low_memory=False)
+    df2 = pd.read_csv(file2_path, encoding='utf-8', encoding_errors = 'ignore', low_memory=False)
     print(f"原始数据 - 文件1: {len(df1)} 行, 文件2: {len(df2)} 行")
+
+    # 删除无法转换成整数的行
+    df2 = df2[df2['id'].apply(is_integer)]  # 保留可以转换成整数的行，其它行被删除
+    df1 = df1.dropna(subset = ['id'])
+    df1['id'] = df1['id'].astype(int)
+    df2 = df2.dropna(subset=['id'])
+    df2['id'] = df2['id'].astype(int)
 
     # 如果没有指定检查列，则检查所有列（除了ID列）
     if check_columns1 is None:
         check_columns1 = [col for col in df1.columns if col != id_column]
     if check_columns2 is None:
         check_columns2 = [col for col in df2.columns if col != id_column]
-    print(check_columns1)
     # 根据ID列合并
     merged_df = pd.merge(df1, df2, on=id_column, how='inner', suffixes=('_1', '_2'))
 
