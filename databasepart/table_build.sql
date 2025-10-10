@@ -9,27 +9,26 @@ drop table if EXISTS country;
 drop table if EXISTS company;
 drop table if exists movie_cast;
 drop Table if EXISTS movie;
-drop table if EXISTS genre_table;
 
 drop table if exists person;
 CREATE table if NOT EXISTS user(
     user_name VARCHAR(50),
     user_id int primary key,
     pass_word VARCHAR(50) NOT NULL
-);
+); # check
 
 CREATE TABLE if NOT EXISTS movie(
-    movie_id int PRIMARY KEY,
+    movie_id VARCHAR(20) PRIMARY KEY,
     movie_name VARCHAR(100),
-    budget int,
-    original_language varchar(5),
-    popularity int,# 这里为了存储空间，考虑使用int
-    release_date date,
-    revenue int,# 此处用万元做单位
-    vote_count int,# 评分人数
-    vote_average int,# 评分的均分
-    overview VARCHAR(2000)
-);
+    isAdult int,
+    release_year SMALLINT,
+    runtime_minutes SMALLINT,
+    average_rating DECIMAL(3,1),
+    numVotes int,
+    check (isAdult in (0,1)),
+    check (release_year >= 1895 and release_year <= 2030)
+    check (average_rating >= 0 and average_rating <= 10)
+); # check
 
 CREATE TABLE if NOT exists user_judge(
     user_id int,
@@ -39,21 +38,14 @@ CREATE TABLE if NOT exists user_judge(
     FOREIGN KEY (movie_id) REFERENCES movie(movie_id),
     PRIMARY KEY(user_id, movie_id),
     check (comment>=1 and comment<=10)
-);
+); # check
 #至此用户部分完成
-
-
-CREATE TABLE if NOT EXISTS genre_table(
-    genre_id int PRIMARY KEY,
-    genre_name VARCHAR(50)
-);
 
 
 create Table if not exists movie_genre(# 影片的类别
     movie_id int,
     genre_id int,
     Foreign Key (movie_id) REFERENCES movie(movie_id),
-    Foreign Key (genre_id) REFERENCES genre_table(genre_id),
     PRIMARY key(movie_id, genre_id)
 );
 

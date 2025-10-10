@@ -1,1 +1,11 @@
 .vscode
+databasepart/name.basics.tsv
+databasepart/name.basics.tsv.gz
+databasepart/title.basics.tsv
+databasepart/title.basics.tsv.gz
+databasepart/title.crew.tsv
+databasepart/title.crew.tsv.gz
+databasepart/title.principals.tsv
+databasepart/title.principals.tsv.gz
+databasepart/title.ratings.tsv
+databasepart/title.ratings.tsv.gz
