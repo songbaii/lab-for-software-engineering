@@ -4,6 +4,15 @@ import os
 import urllib.request
 import gzip
 import shutil
+import pymysql
+
+db_config = {# 对应数据库的链接信息
+        'host': 'localhost',
+        'user': 'violet',
+        'password': 's131601',
+        'database': 'soft_ware_engineering',
+        'charset': 'utf8mb4'
+    }
 
 def download_imdb_data_smart(force_redownload=False):
     """
@@ -96,7 +105,7 @@ def clean_imdb_data(df):
 
     return df_clean
 
-def load_imdb_data(show_movies_head = False, show_movies_type = False, show_rating_range = False):
+def load_imdb_data(show_movies_head = False, show_movies_type = False, show_range = False):
     # 加载电影基本信息
     movies_df = pd.read_csv('title.basics.tsv', sep='\t', low_memory=False)
     movies_df = movies_df[movies_df['titleType'] == 'movie']
@@ -116,9 +125,11 @@ def load_imdb_data(show_movies_head = False, show_movies_type = False, show_rati
         print(movies_with_ratings.head())
     if show_movies_type:
         print(movies_with_ratings.info())
-    if show_rating_range:
+    if show_range:
         print(movies_with_ratings['averageRating'].min())
         print(movies_with_ratings['averageRating'].max())
+        print(movies_with_ratings['startYear'].min())
+        print(movies_with_ratings['startYear'].max())
     return movies_with_ratings
 
 def nan_test(name_data):
@@ -134,6 +145,149 @@ def nan_test(name_data):
         print("\n包含 \\N 的行数据:")
         print(rows_with_backslash_n)
 
+def insert_movie_data(df):
+    """批量插入电影数据"""
+
+    # 建立数据库连接
+    connection = pymysql.connect(**db_config)
+
+    try:
+        with connection.cursor() as cursor:
+            # 构建批量插入的VALUES部分
+            values_placeholders = []
+            data_values = []
+
+            for index, row in df.iterrows():
+                # 处理可能的NaN值
+                start_year = row['startYear'] if pd.notna(row['startYear']) else None
+                runtime = row['runtimeMinutes'] if pd.notna(row['runtimeMinutes']) else None
+                rating = row['averageRating'] if pd.notna(row['averageRating']) else None
+                votes = row['numVotes'] if pd.notna(row['numVotes']) else None
+
+                values_placeholders.append("(%s, %s, %s, %s, %s, %s, %s)")
+                data_values.extend([
+                    row['tconst'],
+                    row['primaryTitle'],
+                    row['isAdult'],
+                    start_year,
+                    runtime,
+                    rating,
+                    votes
+                ])
+
+            # 构建完整的INSERT语句
+            insert_sql = f"""
+            INSERT ignore INTO movie 
+            (movie_id, movie_name, isAdult, release_year, runtime_minutes, average_rating, numVotes) 
+            VALUES {','.join(values_placeholders)}
+            """
+
+            # 执行插入
+            cursor.execute(insert_sql, data_values)
+            connection.commit()
+            print(f"成功批量插入 {len(df)} 条数据")
+
+    except Exception as e:
+        print(f"插入数据时出错: {e}")
+        connection.rollback()
+    finally:
+        connection.close()
+
+def process_genres_and_movies(df):
+    """处理电影类型数据并填充两个表"""
+
+    # 1. 首先提取所有唯一的电影类型
+    all_genres = set()
+    for genres in df['genres']:
+        if pd.notna(genres):
+            # 分割以逗号分隔的类型字符串
+            genre_list = [genre.strip() for genre in genres.split(',')]
+            all_genres.update(genre_list)
+
+    print(f"发现 {len(all_genres)} 个唯一电影类型:")
+    for genre in sorted(all_genres):
+        print(f"  - {genre}")
+
+    # 2. 建立genre_id映射
+    genre_to_id = {}
+    for idx, genre_name in enumerate(sorted(all_genres), 1):
+        genre_to_id[genre_name] = idx
+
+    # 3. 连接数据库
+    connection = pymysql.connect(**db_config)
+
+    try:
+        with connection.cursor() as cursor:
+
+            # 4. 插入genre_table数据
+            print("\n正在插入genre_table数据...")
+            genre_insert_sql = "INSERT IGNORE INTO genre_table (genre_id, genre_name) VALUES (%s, %s)"
+            genre_data = [(genre_id, genre_name) for genre_name, genre_id in genre_to_id.items()]
+
+            cursor.executemany(genre_insert_sql, genre_data)
+            print(f"插入 {len(genre_data)} 个电影类型到genre_table")
+
+            # 5. 插入movie_genre关系数据
+            print("\n正在插入movie_genre关系数据...")
+            movie_genre_data = []
+
+            for index, row in df.iterrows():
+                movie_id = row['tconst']
+                genres_str = row['genres']
+
+                if pd.notna(genres_str):
+                    genre_list = [genre.strip() for genre in genres_str.split(',')]
+
+                    for genre_name in genre_list:
+                        genre_id = genre_to_id.get(genre_name)
+                        if genre_id:
+                            movie_genre_data.append((movie_id, genre_id))
+
+            # 批量插入movie_genre关系
+            if movie_genre_data:
+                movie_genre_sql = "INSERT IGNORE INTO movie_genre (movie_id, genre_id) VALUES (%s, %s)"
+                cursor.executemany(movie_genre_sql, movie_genre_data)
+                print(f"插入 {len(movie_genre_data)} 个电影-类型关系到movie_genre表")
+
+            connection.commit()
+            print("\n✅ 所有数据插入完成!")
+
+            # 6. 验证插入结果
+            print("\n验证插入结果:")
+            cursor.execute("SELECT COUNT(*) FROM genre_table")
+            genre_count = cursor.fetchone()[0]
+            print(f"genre_table中的记录数: {genre_count}")
+
+            cursor.execute("SELECT COUNT(*) FROM movie_genre")
+            movie_genre_count = cursor.fetchone()[0]
+            print(f"movie_genre中的记录数: {movie_genre_count}")
+
+            # 显示一些样本数据
+            print("\ngenre_table样本数据:")
+            cursor.execute("SELECT * FROM genre_table ORDER BY genre_id LIMIT 10")
+            for genre_id, genre_name in cursor.fetchall():
+                print(f"  {genre_id}: {genre_name}")
+
+            print("\nmovie_genre样本数据:")
+            cursor.execute("""
+                           SELECT mg.movie_id, m.movie_name, g.genre_name
+                           FROM movie_genre mg
+                                    JOIN movie m ON mg.movie_id = m.movie_id
+                                    JOIN genre_table g ON mg.genre_id = g.genre_id
+                           LIMIT 10
+                           """)
+            for movie_id, movie_name, genre_name in cursor.fetchall():
+                print(f"  {movie_id} ({movie_name}) - {genre_name}")
+
+    except Exception as e:
+        print(f"操作失败: {e}")
+        connection.rollback()
+    finally:
+        connection.close()
+
+    return genre_to_id
+
+
 def main():
     # 永久设置显示选项（在当前会话中有效）
     pd.set_option('display.max_columns', None)
@@ -144,12 +298,14 @@ def main():
     force_redownload = False  # 是否强制下载
     download_imdb_data_smart(force_redownload)
     # 使用数据
-    show_movies_head = False
+    show_movies_head = True
     show_movies_type = False
-    show_rating_range = False
-    movies_data = load_imdb_data(show_movies_head, show_movies_type, show_rating_range)  # 需要单独建表movie
-
-    principals_data = pd.read_csv('title.principals.tsv', sep='\t')
+    show_range = False
+    movies_data = load_imdb_data(show_movies_head, show_movies_type, show_range)  # 需要单独建表movie
+    # 使用示例
+    insert_movie_data(movies_data)
+    process_genres_and_movies(movies_data)
+    '''principals_data = pd.read_csv('title.principals.tsv', sep='\t')
     principals_data = principals_data[principals_data['tconst'].isin(movies_data['tconst'])]
     principals_data.drop('job', axis=1, inplace=True)
     principals_data.drop('characters', axis=1, inplace=True)
@@ -169,7 +325,7 @@ def main():
         if len(comma_rows) > 0:
             print("包含逗号的样本数据:")
             print(comma_rows.head())
-    
+
     name_data = pd.read_csv('name.basics.tsv', sep='\t', low_memory=False)
     name_data = name_data[name_data['nconst'].isin(principals_data['nconst'])]
     name_data.drop('primaryProfession', axis=1, inplace=True)
@@ -183,7 +339,6 @@ def main():
     test_name_type = True
     if test_name_type:
         print(name_data.info())
-    # 数据完整性测试完毕
-
+    # 数据完整性测试完毕'''
 if __name__ == "__main__":
     main()

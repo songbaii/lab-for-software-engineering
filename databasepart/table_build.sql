@@ -16,14 +16,14 @@ CREATE table if NOT EXISTS user(
 
 CREATE TABLE if NOT EXISTS movie(
     movie_id VARCHAR(20) PRIMARY KEY,
-    movie_name VARCHAR(100),
+    movie_name VARCHAR(1000),
     isAdult int,
     release_year SMALLINT,
-    runtime_minutes SMALLINT,
+    runtime_minutes INT,
     average_rating DECIMAL(3,1),
     numVotes int,
     check (isAdult in (0,1)),
-    check (release_year >= 1895 and release_year <= 2030),
+    check (release_year >= 1894 and release_year <= 2030),
     check (average_rating >= 1 and average_rating <= 10) # 按照所给的数据集，这里的限制是1-10
 ); # check
 
