@@ -1,10 +1,12 @@
+drop DATABASE soft_ware_engineering;
 create DATABASE if NOT EXISTS soft_ware_engineering;
 use soft_ware_engineering;
 drop TABLE if EXISTS user_judge;
 drop table if EXISTS user;
 drop Table if EXISTS movie_genre;
+drop TABLE if exists genre_table;
+drop table if EXISTS movie_person;
 drop table if exists movie;
-
 drop table if exists person;
 CREATE table if NOT EXISTS user(
     user_name VARCHAR(50),
@@ -21,7 +23,7 @@ CREATE TABLE if NOT EXISTS movie(
     average_rating DECIMAL(3,1),
     numVotes int,
     check (isAdult in (0,1)),
-    check (release_year >= 1895 and release_year <= 2030)
+    check (release_year >= 1895 and release_year <= 2030),
     check (average_rating >= 1 and average_rating <= 10) # 按照所给的数据集，这里的限制是1-10
 ); # check
 

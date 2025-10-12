@@ -121,6 +121,19 @@ def load_imdb_data(show_movies_head = False, show_movies_type = False, show_rati
         print(movies_with_ratings['averageRating'].max())
     return movies_with_ratings
 
+def nan_test(name_data):
+    columns_to_check = [col for col in name_data.columns if col != 'deathYear' and col != 'birthYear']
+    # 检测这些列中是否存在 \N
+    has_backslash_n = name_data[columns_to_check].eq('\\N').any().any()
+    print(f"除deathYear和birthYear外其他列是否存在 \\N: {has_backslash_n}")
+    if has_backslash_n:
+        # 找出在指定列中包含 \N 的行
+        mask = name_data[columns_to_check].eq('\\N').any(axis=1)
+        rows_with_backslash_n = name_data[mask]
+
+        print("\n包含 \\N 的行数据:")
+        print(rows_with_backslash_n)
+
 def main():
     # 永久设置显示选项（在当前会话中有效）
     pd.set_option('display.max_columns', None)
@@ -131,7 +144,7 @@ def main():
     force_redownload = False  # 是否强制下载
     download_imdb_data_smart(force_redownload)
     # 使用数据
-    show_movies_head = True
+    show_movies_head = False
     show_movies_type = False
     show_rating_range = False
     movies_data = load_imdb_data(show_movies_head, show_movies_type, show_rating_range)  # 需要单独建表movie
@@ -141,29 +154,36 @@ def main():
     principals_data.drop('job', axis=1, inplace=True)
     principals_data.drop('characters', axis=1, inplace=True)
     principals_data.reset_index(drop=True, inplace=True)
-    test_nan = False # 对表中是否有nan进行测试和清洗
-    if test_nan:
+    test_nan_principal = False # 对表中是否有nan进行测试和清洗
+    if test_nan_principal:
         principals_data = clean_imdb_data(principals_data)
-    print(principals_data.head(10))
-
+    test_principal_type = True
+    if test_principal_type:
+        print(principals_data.info())
+    # 检测包含逗号的行
+    test_comma = False
+    if test_comma:
+        comma_rows = principals_data[principals_data['category'].str.contains(',', na=False)]
+        print(f"包含逗号的行数: {len(comma_rows)}")
+        # 显示包含逗号的样本数据
+        if len(comma_rows) > 0:
+            print("包含逗号的样本数据:")
+            print(comma_rows.head())
+    
     name_data = pd.read_csv('name.basics.tsv', sep='\t', low_memory=False)
     name_data = name_data[name_data['nconst'].isin(principals_data['nconst'])]
     name_data.drop('primaryProfession', axis=1, inplace=True)
     name_data.drop('knownForTitles', axis=1, inplace=True)
     name_data.reset_index(drop=True, inplace=True)
-    # 选择除 deathYear 外的所有列
-    columns_to_check = [col for col in name_data.columns if col != 'deathYear' and col != 'birthYear']
-    # 检测这些列中是否存在 \N
-    has_backslash_n = name_data[columns_to_check].eq('\\N').any().any()
-    print(f"除deathYear外其他列是否存在 \\N: {has_backslash_n}")
-    if has_backslash_n:
-        # 找出在指定列中包含 \N 的行
-        mask = name_data[columns_to_check].eq('\\N').any(axis=1)
-        rows_with_backslash_n = name_data[mask]
-
-        print("\n包含 \\N 的行数据:")
-        print(rows_with_backslash_n)
+    # 选择除 deathYear和birthYear 外的所有列进行检测
+    test_nan_name = False
+    if test_nan_name:
+        nan_test(name_data)
     print(name_data.head())
+    test_name_type = True
+    if test_name_type:
+        print(name_data.info())
+    # 数据完整性测试完毕
 
 if __name__ == "__main__":
     main()
