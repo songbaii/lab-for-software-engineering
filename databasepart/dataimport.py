@@ -5,6 +5,7 @@ import urllib.request
 import gzip
 import shutil
 import pymysql
+import time
 
 db_config = {# 对应数据库的链接信息
         'host': 'localhost',
@@ -185,7 +186,7 @@ def insert_movie_data(df):
             # 执行插入
             cursor.execute(insert_sql, data_values)
             connection.commit()
-            print(f"成功批量插入 {len(df)} 条数据")
+            print(f"成功批量插入movie表 {len(df)} 条数据")
 
     except Exception as e:
         print(f"插入数据时出错: {e}")
@@ -221,7 +222,7 @@ def process_genres_and_movies(df):
 
             # 4. 插入genre_table数据
             print("\n正在插入genre_table数据...")
-            genre_insert_sql = "INSERT IGNORE INTO genre_table (genre_id, genre_name) VALUES (%s, %s)"
+            genre_insert_sql = "INSERT ignore INTO genre_table (genre_id, genre_name) VALUES (%s, %s)"
             genre_data = [(genre_id, genre_name) for genre_name, genre_id in genre_to_id.items()]
 
             cursor.executemany(genre_insert_sql, genre_data)
@@ -285,8 +286,133 @@ def process_genres_and_movies(df):
     finally:
         connection.close()
 
-    return genre_to_id
+def insert_person(df):
+    connection = pymysql.connect(**db_config)
+    try:
+        with connection.cursor() as cursor:
+            values_placeholders = []
+            data_values = []
+            for index, row in df.iterrows():
+                person_id = row['nconst']
+                name = row['primaryName']
+                birth_year = row['birthYear']
+                death_year = row['deathYear']
+                values_placeholders.append("(%s, %s, %s, %s)")
+                data_values.extend([person_id, name, birth_year, death_year])
+            insert_sql = f"insert ignore into person (person_id, name, birth_year, death_year) values {','.join(values_placeholders)}"
+            # 执行插入
+            cursor.execute(insert_sql, data_values)
+            connection.commit()
+            print(f"成功批量插入person表 {len(df)} 条数据")
+    except Exception as e:
+        print(f"插入数据时出错: {e}")
+        connection.rollback()
+    finally:
+        connection.close()
 
+def insrt_movie_person(df, batch_size=1000, max_retries=3):
+    """
+    优化后的批量插入函数，支持分批插入和自动重连
+
+    Args:
+        df: 包含电影人员数据的DataFrame
+        batch_size: 每批插入的数据量，默认1000条
+        max_retries: 最大重试次数，默认3次
+    """
+    total_inserted = 0
+    total_batches = (len(df) + batch_size - 1) // batch_size  # 计算总批次数
+
+    print(f"开始插入 {len(df)} 条数据，分批大小: {batch_size}，总批次数: {total_batches}")
+
+    for batch_num in range(0, len(df), batch_size):
+        batch_df = df.iloc[batch_num:batch_num + batch_size]
+        retry_count = 0
+        batch_success = False
+
+        while retry_count < max_retries and not batch_success:
+            connection = None
+            try:
+                # 建立新连接
+                connection = pymysql.connect(**db_config)
+                with connection.cursor() as cursor:
+                    # 准备批量插入数据
+                    values_placeholders = []
+                    data_values = []
+
+                    for index, row in batch_df.iterrows():
+                        movie_id = row['tconst']
+                        person_id = row['nconst']
+                        ordering = row['ordering']
+                        job = row['category']
+
+                        values_placeholders.append("(%s, %s, %s, %s)")
+                        data_values.extend([movie_id, person_id, ordering, job])
+
+                    # 构建插入SQL
+                    insert_sql = f"""
+                    INSERT ignore INTO movie_person 
+                    (movie_id, person_id, ordering, job) 
+                    VALUES {','.join(values_placeholders)}
+                    """
+
+                    # 执行插入
+                    cursor.execute(insert_sql, data_values)
+                    connection.commit()
+
+                    batch_inserted = cursor.rowcount
+                    total_inserted += batch_inserted
+
+                    print(
+                        f"批次 {batch_num // batch_size + 1}/{total_batches} 成功插入 {batch_inserted} 条数据，累计 {total_inserted} 条")
+                    batch_success = True
+
+            except pymysql.err.OperationalError as e:
+                retry_count += 1
+                print(f"批次 {batch_num // batch_size + 1} 第 {retry_count} 次重试，数据库错误: {e}")
+                if connection:
+                    connection.rollback()
+                time.sleep(2)  # 等待2秒后重试
+
+            except pymysql.err.InterfaceError as e:
+                retry_count += 1
+                print(f"批次 {batch_num // batch_size + 1} 第 {retry_count} 次重试，连接错误: {e}")
+                if connection:
+                    connection.rollback()
+                time.sleep(2)
+
+            except Exception as e:
+                print(f"批次 {batch_num // batch_size + 1} 插入失败: {e}")
+                if connection:
+                    connection.rollback()
+                break  # 其他错误不再重试
+
+            finally:
+                # 确保连接关闭
+                if connection:
+                    connection.close()
+
+        # 如果重试后仍然失败
+        if not batch_success:
+            print(f"警告: 批次 {batch_num // batch_size + 1} 插入失败，跳过该批次")
+
+        # 批次间短暂休息，避免服务器压力过大
+        if batch_success and (batch_num + batch_size) < len(df):
+            time.sleep(0.1)
+
+    print(f"插入完成! 成功插入 {total_inserted} 条数据，失败 {len(df) - total_inserted} 条")
+    return total_inserted
+
+def check_duplicates(df):
+    """检查DataFrame中的重复记录"""
+    # 检查完全重复的行
+    total_duplicates = df.duplicated().sum()
+    print(f"完全重复的记录: {total_duplicates} 条")
+
+    # 检查基于关键字段的重复
+    key_duplicates = df.duplicated(subset=['tconst', 'nconst', 'ordering', 'category']).sum()
+    print(f"基于(tconst, nconst, ordering)的重复: {key_duplicates} 条")
+
+    return total_duplicates, key_duplicates
 
 def main():
     # 永久设置显示选项（在当前会话中有效）
@@ -298,25 +424,26 @@ def main():
     force_redownload = False  # 是否强制下载
     download_imdb_data_smart(force_redownload)
     # 使用数据
-    show_movies_head = True
+    show_movies_head = False
     show_movies_type = False
     show_range = False
     movies_data = load_imdb_data(show_movies_head, show_movies_type, show_range)  # 需要单独建表movie
     # 使用示例
     insert_movie_data(movies_data)
     process_genres_and_movies(movies_data)
-    '''principals_data = pd.read_csv('title.principals.tsv', sep='\t')
+    # movie_data部分处理完毕
+    principals_data = pd.read_csv('title.principals.tsv', sep='\t')
     principals_data = principals_data[principals_data['tconst'].isin(movies_data['tconst'])]
     principals_data.drop('job', axis=1, inplace=True)
     principals_data.drop('characters', axis=1, inplace=True)
     principals_data.reset_index(drop=True, inplace=True)
-    test_nan_principal = False # 对表中是否有nan进行测试和清洗
+    test_nan_principal = False # 对表中是否有nan进行测试和清洗,应该是没有的
     if test_nan_principal:
         principals_data = clean_imdb_data(principals_data)
-    test_principal_type = True
+    test_principal_type = False
     if test_principal_type:
         print(principals_data.info())
-    # 检测包含逗号的行
+    # 检测包含逗号的行,这里应该是0行，可以用下面的代码检测
     test_comma = False
     if test_comma:
         comma_rows = principals_data[principals_data['category'].str.contains(',', na=False)]
@@ -335,10 +462,16 @@ def main():
     test_nan_name = False
     if test_nan_name:
         nan_test(name_data)
-    print(name_data.head())
-    test_name_type = True
+    test_name_head = False
+    if test_name_head:
+        print(name_data.head())
+    test_name_type = False
     if test_name_type:
         print(name_data.info())
-    # 数据完整性测试完毕'''
+    # 我们这里先处理name表的数据，因为另一个表要参照这个表
+    name_data.replace('\\N', 0, inplace=True)
+    insert_person(name_data)
+    insrt_movie_person(principals_data)
+    # check_duplicates(principals_data)
 if __name__ == "__main__":
     main()

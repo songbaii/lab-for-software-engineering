@@ -25,7 +25,7 @@ CREATE TABLE if NOT EXISTS movie(
     check (isAdult in (0,1)),
     check (release_year >= 1894 and release_year <= 2030),
     check (average_rating >= 1 and average_rating <= 10) # 按照所给的数据集，这里的限制是1-10
-); # check
+); # check and done
 
 CREATE TABLE if NOT exists user_judge(
     user_id int,
@@ -41,7 +41,7 @@ CREATE TABLE if NOT exists user_judge(
 create Table if not exists genre_table(
     genre_id SMALLINT PRIMARY key,
     genre_name VARCHAR(20)
-);
+);# check and done
 
 create Table if not exists movie_genre(# 影片的类别
     movie_id VARCHAR(20),
@@ -49,11 +49,11 @@ create Table if not exists movie_genre(# 影片的类别
     Foreign Key (movie_id) REFERENCES movie(movie_id),
     Foreign Key (genre_id) REFERENCES genre_table(genre_id),
     PRIMARY key(movie_id, genre_id)
-);
+); # check and done
 
 CREATE table if NOT exists person(
     person_id VARCHAR(20) PRIMARY KEY,
-    name VARCHAR(50),
+    name VARCHAR(100),
     birth_year SMALLINT,
     death_year SMALLINT
 );
@@ -61,8 +61,9 @@ CREATE table if NOT exists person(
 create table if NOT exists movie_person(
     movie_id VARCHAR(20),
     person_id VARCHAR(20),
-    job VARCHAR(20),
+    job VARCHAR(40),
+    ordering SMALLINT,
     Foreign Key (movie_id) REFERENCES movie(movie_id),
     Foreign Key (person_id) REFERENCES person(person_id),
-    PRIMARY key(movie_id, person_id)
+    PRIMARY key(movie_id, person_id, ordering)
 );
