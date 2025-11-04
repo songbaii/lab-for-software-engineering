@@ -9,3 +9,8 @@ databasepart/title.principals.tsv
 databasepart/title.principals.tsv.gz
 databasepart/title.ratings.tsv
 databasepart/title.ratings.tsv.gz
+databasepart/movielens_data
+databasepart/movielens_ml-100k
+databasepart/movies.csv
+databasepart/ratings.csv
+databasepart/users.csv

@@ -6,6 +6,8 @@ import gzip
 import shutil
 import pymysql
 import time
+import requests
+import zipfile
 
 db_config = {# 对应数据库的链接信息
         'host': 'localhost',
@@ -414,8 +416,143 @@ def check_duplicates(df):
 
     return total_duplicates, key_duplicates
 
+def download_movielens_complete(version='ml-100k'):
+    """
+    完整下载 MovieLens 数据集的函数
+    """
+    # 数据集 URL
+    urls = {
+        'ml-100k': 'https://files.grouplens.org/datasets/movielens/ml-100k.zip',
+        'ml-1m': 'https://files.grouplens.org/datasets/movielens/ml-1m.zip',
+        'ml-10m': 'https://files.grouplens.org/datasets/movielens/ml-10m.zip',
+        'ml-25m': 'https://files.grouplens.org/datasets/movielens/ml-25m.zip'
+    }
+
+    if version not in urls:
+        print(f"版本 {version} 不存在，使用 ml-100k")
+        version = 'ml-100k'
+
+    url = urls[version]
+    download_dir = f"./movielens_data"
+
+    # 创建目录
+    os.makedirs(download_dir, exist_ok=True)
+    zip_path = os.path.join(download_dir, f"{version}.zip")
+
+    print(f"正在下载 {version} 数据集...")
+
+    try:
+        # 下载文件
+        response = requests.get(url, stream=True)
+        response.raise_for_status()  # 检查请求是否成功
+
+        total_size = int(response.headers.get('content-length', 0))
+        downloaded_size = 0
+
+        with open(zip_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+                    downloaded_size += len(chunk)
+                    if total_size > 0:
+                        progress = (downloaded_size / total_size) * 100
+                        print(f"下载进度: {progress:.1f}%", end='\r')
+
+        print("\n下载完成！")
+
+        # 解压文件
+        print("正在解压...")
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(download_dir)
+
+        print("解压完成！")
+
+        # 读取数据
+        data_dir = os.path.join(download_dir, version)
+        return load_data_files(data_dir, version)
+
+    except requests.exceptions.RequestException as e:
+        print(f"下载失败: {e}")
+        return None, None
+
+
+def load_data_files(data_dir, version):
+    """
+    加载数据文件为 DataFrame
+    """
+    data_frames = {}
+
+    try:
+        if version == 'ml-100k':
+            # 评分数据
+            u_data_path = os.path.join(data_dir, 'u.data')
+            data_frames['ratings'] = pd.read_csv(u_data_path, sep='\t',
+                                                 names=['user_id', 'item_id', 'rating', 'timestamp'])
+
+            # 电影数据
+            u_item_path = os.path.join(data_dir, 'u.item')
+            data_frames['movies'] = pd.read_csv(u_item_path, sep='|',
+                                                encoding='latin-1',
+                                                names=['item_id', 'title', 'release_date', 'video_release_date',
+                                                       'imdb_url', 'unknown', 'Action', 'Adventure', 'Animation',
+                                                       'Children', 'Comedy', 'Crime', 'Documentary', 'Drama',
+                                                       'Fantasy', 'Film-Noir', 'Horror', 'Musical', 'Mystery',
+                                                       'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western'])
+
+            # 用户数据（可选）
+            u_user_path = os.path.join(data_dir, 'u.user')
+            if os.path.exists(u_user_path):
+                data_frames['users'] = pd.read_csv(u_user_path, sep='|',
+                                                   names=['user_id', 'age', 'gender', 'occupation', 'zip_code'])
+
+        elif version == 'ml-1m':
+            # 评分数据
+            ratings_path = os.path.join(data_dir, 'ratings.dat')
+            data_frames['ratings'] = pd.read_csv(ratings_path, sep='::',
+                                                 engine='python',
+                                                 names=['user_id', 'item_id', 'rating', 'timestamp'])
+
+            # 电影数据
+            movies_path = os.path.join(data_dir, 'movies.dat')
+            data_frames['movies'] = pd.read_csv(movies_path, sep='::',
+                                                engine='python', encoding='latin-1',
+                                                names=['item_id', 'title', 'genres'])
+
+            # 用户数据
+            users_path = os.path.join(data_dir, 'users.dat')
+            data_frames['users'] = pd.read_csv(users_path, sep='::',
+                                               engine='python',
+                                               names=['user_id', 'gender', 'age', 'occupation', 'zip_code'])
+
+    except Exception as e:
+        print(f"读取数据文件时出错: {e}")
+
+    return data_frames, data_dir
+
+
+def display_data_info(data_frames):
+    """
+    显示数据集信息
+    """
+    if not data_frames:
+        print("没有数据可显示")
+        return
+
+    print("\n" + "=" * 60)
+    print("数据集信息汇总")
+    print("=" * 60)
+
+    for name, df in data_frames.items():
+        print(f"\n📊 {name.upper()} 数据:")
+        print(f"   形状: {df.shape}")
+        print(f"   列名: {list(df.columns)}")
+        print(f"   前3行:")
+        print(df.head(3).to_string())
+        print("-" * 40)
+
 def main():
     # 永久设置显示选项（在当前会话中有效）
+    '''
     pd.set_option('display.max_columns', None)
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_colwidth', None)
@@ -472,6 +609,21 @@ def main():
     name_data.replace('\\N', 0, inplace=True)
     insert_person(name_data)
     insrt_movie_person(principals_data)
-    # check_duplicates(principals_data)
+    # check_duplicates(principals_data)'''
+    # 下载 ml-100k 数据集（推荐初学者使用）
+    print("开始下载 MovieLens 数据集...")
+    data_frames, data_dir = download_movielens_complete('ml-100k')
+
+    if data_frames:
+        display_data_info(data_frames)
+
+        # 保存到 CSV 文件（可选）
+        for name, df in data_frames.items():
+            csv_path = f"./{name}.csv"
+            df.to_csv(csv_path, index=False)
+            print(f"✅ {name} 已保存到 {csv_path}")
+
+    return data_frames
+
 if __name__ == "__main__":
     main()
