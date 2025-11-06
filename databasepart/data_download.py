@@ -2,28 +2,16 @@ import requests
 import zipfile
 import os
 
-
-def download_movielens_variant(dataset_size="100k"):
-    """
-    下载不同大小的MovieLens数据集
-
-    参数:
-    dataset_size: 数据集大小，可选 "100k", "1m", "10m", "25m"
-    """
-    datasets = {
-        "100k": "https://files.grouplens.org/datasets/movielens/ml-100k.zip",
-        "1m": "https://files.grouplens.org/datasets/movielens/ml-1m.zip",
-        "10m": "https://files.grouplens.org/datasets/movielens/ml-10m.zip",
-        "25m": "https://files.grouplens.org/datasets/movielens/ml-25m.zip"
-    }
-
-    if dataset_size not in datasets:
-        print(f"不支持的数据集大小，请选择: {list(datasets.keys())}")
-        return
-
-    url = datasets[dataset_size]
+def download_movielens_variant():
+    """下载数据集"""
+    dataset_size = "10M100K"
+    url = "https://files.grouplens.org/datasets/movielens/ml-10m.zip"
     filename = f"ml-{dataset_size}.zip"
     extract_path = f"./movielens_data"
+
+    if os.path.exists(f"{extract_path}/ml-{dataset_size}"):
+        print(f"{dataset_size}数据集先前已经下载完毕")
+        return
 
     os.makedirs(extract_path, exist_ok=True)
 
@@ -46,8 +34,8 @@ def download_movielens_variant(dataset_size="100k"):
 
         print("\n下载完成，正在解压...")
         with zipfile.ZipFile(filename, 'r') as zip_ref:
+            # 解压所有文件
             zip_ref.extractall(extract_path)
-
         os.remove(filename)
         print(f"数据集已保存到: {extract_path}")
 
@@ -56,6 +44,7 @@ def download_movielens_variant(dataset_size="100k"):
 
 def main():
     download_movielens_variant()
+
 
 if __name__ == '__main__':
     main()
