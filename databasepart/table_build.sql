@@ -5,11 +5,8 @@ drop TABLE if EXISTS user_judge;
 drop table if EXISTS user;
 drop Table if EXISTS movie_genre;
 drop TABLE if exists genre_table;
-drop table if EXISTS movie_person;
 drop table if exists movie;
-drop table if exists person;
 CREATE table if NOT EXISTS user(
-    user_name VARCHAR(50),
     user_id int primary key,
     pass_word VARCHAR(50) NOT NULL
 ); # check
@@ -17,24 +14,17 @@ CREATE table if NOT EXISTS user(
 CREATE TABLE if NOT EXISTS movie(
     movie_id VARCHAR(20) PRIMARY KEY,
     movie_name VARCHAR(1000),
-    isAdult int,
-    release_year SMALLINT,
-    runtime_minutes INT,
-    average_rating DECIMAL(3,1),
-    numVotes int,
-    check (isAdult in (0,1)),
-    check (release_year >= 1894 and release_year <= 2030),
-    check (average_rating >= 1 and average_rating <= 10) # 按照所给的数据集，这里的限制是1-10
+    release_year SMALLINT
 ); # check and done
 
 CREATE TABLE if NOT exists user_judge(
     user_id int,
     movie_id VARCHAR(20),
-    comment int,# 这里限制一下比如说1-10
+    rating DECIMAL(2,1),
     Foreign Key (user_id) REFERENCES user(user_id),
     FOREIGN KEY (movie_id) REFERENCES movie(movie_id),
     PRIMARY KEY(user_id, movie_id),
-    check (comment>=1 and comment<=10)
+    check (rating >= 0 AND rating <= 5.0 AND (rating * 2) = FLOOR(rating * 2)) # 小数部分只能是0或5
 ); # check
 #至此用户部分完成
 
@@ -51,19 +41,11 @@ create Table if not exists movie_genre(# 影片的类别
     PRIMARY key(movie_id, genre_id)
 ); # check and done
 
-CREATE table if NOT exists person(
-    person_id VARCHAR(20) PRIMARY KEY,
-    name VARCHAR(100),
-    birth_year SMALLINT,
-    death_year SMALLINT
-);
-
-create table if NOT exists movie_person(
+create table if not exists user_comment(
+    user_id int,
     movie_id VARCHAR(20),
-    person_id VARCHAR(20),
-    job VARCHAR(40),
-    ordering SMALLINT,
-    Foreign Key (movie_id) REFERENCES movie(movie_id),
-    Foreign Key (person_id) REFERENCES person(person_id),
-    PRIMARY key(movie_id, person_id, ordering)
-);
+    comment VARCHAR(1000),
+    FOREIGN KEY (user_id) REFERENCES user(user_id),
+    FOREIGN KEY (movie_id) REFERENCES movie(movie_id),
+    PRIMARY KEY(user_id, movie_id)
+); # check and done
