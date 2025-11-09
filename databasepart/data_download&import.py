@@ -245,6 +245,56 @@ def create_user_table_batch(ratings_df, tags_df, connection_string):
 
     print("用户数据插入成功")
 
+def insert_user_judge_pandas(df, connection_string):
+    """
+    使用pandas的to_sql方法插入数据（需要SQLAlchemy）
+    """
+
+    # 创建SQLAlchemy引擎
+    engine = create_engine(connection_string)
+
+    # 重命名列以匹配数据库表结构
+    df_db = df.rename(columns={
+        'UserID': 'user_id',
+        'MovieID': 'movie_id',
+        'Rating': 'rating'
+    })
+
+    # 插入数据，如果存在重复则更新
+    df_db.to_sql(
+        name='user_judge',
+        con=engine,
+        if_exists='append',
+        index=False,
+        method=insert_with_ignore
+    )
+    print("成功插入测试用户和电影的评分数据")
+
+def insert_user_comment_pandas(df, connection_string):
+    """
+    使用pandas的to_sql方法插入数据（需要SQLAlchemy）
+    """
+    # 创建SQLAlchemy引擎
+    engine = create_engine(connection_string)
+
+    # 重命名列以匹配数据库表结构
+    df_db = df.rename(columns={
+        'UserID': 'user_id',
+        'MovieID': 'movie_id',
+        'Tag': 'comment'
+    })
+
+    # 插入数据
+    df_db.to_sql(
+        name='user_comment',
+        con=engine,
+        if_exists='append',
+        index=False,
+        method=insert_with_ignore
+    )
+
+    print("成功插入测试用户评价数据数据")
+
 def data_import(ratings, movies, tags):
     # 插入数据集到数据库
     # 先进行数据处理
@@ -253,17 +303,21 @@ def data_import(ratings, movies, tags):
     movies["Year"] = movies['Title'].str.extract(r'(\d{4})')
     movies['Title'] = movies['Title'].str.replace(r'\s*\(\d{4}\)$', '', regex=True)
     # print(movies.head())
-    print(ratings.head())
-    print(tags.head())
+    # print(ratings.head())
+    # print(tags.head())
     connection_string = "mysql+pymysql://violet:s131601@localhost:3306/soft_ware_engineering"
     print("开始插入数据到数据库")
     movie_insert(movies, connection_string)
-    print("开始插入列别到数据库")
+    print("开始插入类别到数据库")
     extract_genres_pandas(movies, connection_string)
     print("开始建立电影和类别的联系")
     create_movie_genre_relations(movies, connection_string)
     print("开始插入测试用户数据")
     create_user_table_batch(ratings, tags, connection_string)
+    print("开始插入测试用户和电影的评分数据")
+    insert_user_judge_pandas(ratings, connection_string)
+    print("开始插入测试用户评价数据")
+    insert_user_comment_pandas(tags, connection_string)
 
 
 
