@@ -4,6 +4,22 @@
 1. 登陆、注册界面
 + 用户名
 + 用户密码
+
+```json
+// /api/login
+//  POST方法，发送json如下：
+{
+    "username": "***",
+    "password": "***"
+}
+// 返回的json格式：
+{
+    // bool 类型
+    "success": true
+}
+```
+
+
 2. 主页
 + 推荐的电影
     + 电影名称
