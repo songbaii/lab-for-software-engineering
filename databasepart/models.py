@@ -1,26 +1,47 @@
 from flask_sqlalchemy import SQLAlchemy
-import bcrypt
-from datetime import datetime
 
 # 这里使用了 flask_sqlalchemy 库的 SQLAlchemy 类
 db = SQLAlchemy()
 
 
-class User(db.Model):
-    __tablename__ = 'users'
+class user(db.Model):
+    __table__ = db.Table(
+        'user',
+        db.metadata,
+        autoload_with=db.engine  # 自动从数据库加载表结构
+    )
 
-    id = db.Column(db.Integer, primary_key=True)
-    password_hash = db.Column(db.String(50), nullable=False)
+class movie(db.Model):
+    __table__ = db.Table(
+        'movie',
+        db.metadata,
+        autoload_with=db.engine
+    )
 
-    def set_password(self, password):
-        salt = bcrypt.gensalt()
-        self.password_hash = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+class user_judge(db.Model):
+    __table__ = db.Table(
+        'user_judge',
+        db.metadata,
+        autoload_with=db.engine
+    )
 
-    def check_password(self, password):
-        return bcrypt.checkpw(password.encode('utf-8'), self.password_hash.encode('utf-8'))
+class genre_table(db.Model):
+    __table__ = db.Table(
+        'genre',
+        db.metadata,
+        autoload_with=db.engine
+    )
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'username': self.username,
-        }
+class movie_genre(db.Model):
+    __table__ = db.Table(
+        'movie_genre',
+        db.metadata,
+        autoload_with=db.engine
+    )
+
+class user_comment(db.Model):
+    __table__ = db.Table(
+        'user_comment',
+        db.metadata,
+        autoload_with=db.engine
+    )
