@@ -8,7 +8,8 @@ drop TABLE if exists genre_table;
 drop table if exists movie;
 CREATE table if NOT EXISTS user(
     user_id int primary key,
-    pass_word VARCHAR(50) NOT NULL
+    pass_word VARCHAR(50) NOT NULL,
+    user_name VARCHAR(50)
 ); # check
 
 CREATE TABLE if NOT EXISTS movie(

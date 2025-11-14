@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from config import Config
-from models import db
+from models import db, Movie, MovieGenre, UserJudge, UserComment, User, GenreTable
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -8,7 +8,7 @@ app.config.from_object(Config)
 # 初始化数据库
 db.init_app(app)
 
-@app.route('api/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def login():
     """
     用户登录接口
@@ -22,6 +22,7 @@ def login():
         if not data:
             return jsonify({
                 'success': False,
+                'message': "未接收到信息"
             }), 400
 
         username = int(data.get('username'))
@@ -30,32 +31,37 @@ def login():
         if not username or not password:
             return jsonify({
                 'success': False,
+                'messge': "传递信息存在缺失"
             }), 400
 
         # 在数据库中查找用户
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(user_id=username).first()
 
         if not user:
             return jsonify({
                 'success': False,
+                'messge': "不存在该用户"
             }), 401
 
         # 验证密码
         if user.check_password(password):
             return jsonify({
                 'success': True,
+                'message': "登录成功"
             }), 200
         else:
             return jsonify({
                 'success': False,
+                "messge": "密码错误"
             }), 401
     except Exception as e:
         return jsonify({
             'success': False,
+            'message': "未知错误"
         }), 500
 
 
-@app.route('/register', methods=['POST'])
+@app.route('/api/register', methods=['POST'])
 def register():
     """
     用户注册接口

@@ -4,42 +4,48 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 
-class user(db.Model):
+class User(db.Model):
     __table__ = db.Table(
         'user',
         db.metadata,
         autoload_with=db.engine  # 自动从数据库加载表结构
     )
 
-class movie(db.Model):
+    def check_password(self, password):
+        if self.password != password:
+            return False
+        else:
+            return True
+
+class Movie(db.Model):
     __table__ = db.Table(
         'movie',
         db.metadata,
         autoload_with=db.engine
     )
 
-class user_judge(db.Model):
+class UserJudge(db.Model):
     __table__ = db.Table(
         'user_judge',
         db.metadata,
         autoload_with=db.engine
     )
 
-class genre_table(db.Model):
+class GenreTable(db.Model):
     __table__ = db.Table(
         'genre',
         db.metadata,
         autoload_with=db.engine
     )
 
-class movie_genre(db.Model):
+class MovieGenre(db.Model):
     __table__ = db.Table(
         'movie_genre',
         db.metadata,
         autoload_with=db.engine
     )
 
-class user_comment(db.Model):
+class UserComment(db.Model):
     __table__ = db.Table(
         'user_comment',
         db.metadata,
