@@ -64,6 +64,7 @@ class TestLoginWithMySQL:
         test_id = test_user.user_id
         db.session.delete(test_user)
         db.session.commit()
+
         """测试用户不存在的情况"""
         data = {
             'user_id': test_id,  # 不存在的用户ID
@@ -94,6 +95,42 @@ class TestLoginWithMySQL:
         print(f"Response JSON: {response.get_json()}")
         assert response.status_code == 200
         assert response.get_json()['success'] == True
+        db.session.delete(test_user)
+        db.session.commit()
+
+    def test_login_wrong_password(self, client):
+        test_user = User(user_name='123', password='testpass')
+        db.session.add(test_user)
+        db.session.commit()
+        test_id = test_user.user_id
+
+        """测试用户不存在的情况"""
+        data = {
+            'user_id': test_id,  # 不存在的用户ID
+            'password': 'wrong password'
+        }
+
+        response = client.post('/api/login', json=data)
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 401
+        assert response.get_json()['success'] == False
+        db.session.delete(test_user)
+        db.session.commit()
+
+    def test_create_new_user(self, client):
+        """测试创建用户"""
+        data = {
+            'user_name': 'test1',  # 不存在的用户ID
+            'password': 'test password'
+        }
+
+        response = client.post('/api/register', json=data)
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 201
+        assert response.get_json()['success'] == True
+        test_user = User.query.filter_by(user_name='test1').first()
         db.session.delete(test_user)
         db.session.commit()
 
