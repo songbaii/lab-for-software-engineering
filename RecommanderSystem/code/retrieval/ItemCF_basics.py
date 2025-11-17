@@ -16,6 +16,27 @@ class ItemCF:
             self.user_item_matrix[user_id] = {}
         self.user_item_matrix[user_id][item_id] = rating
     
+    def load_ml1m_data(self, file_path, max_lines=None):
+        """从ml-1m数据集加载评分数据
+        Args:
+            file_path: ratings.dat文件路径
+            max_lines: 最大读取行数，用于测试，默认None表示读取全部
+        """
+        with open(file_path, 'r', encoding='utf-8') as f:
+            count = 0
+            for line in f:
+                if max_lines and count >= max_lines:
+                    break
+                # 解析数据行：UserID::MovieID::Rating::Timestamp
+                parts = line.strip().split('::')
+                if len(parts) == 4:
+                    user_id = int(parts[0])
+                    item_id = int(parts[1])
+                    rating = float(parts[2])
+                    self.add_user_item_rating(user_id, item_id, rating)
+                    count += 1
+        print(f"成功加载 {count} 条评分记录")
+    
     def calculate_item_similarity(self):
         """计算物品之间的相似度（基于用户-物品评分矩阵中两列的余弦夹角）"""
         # 获取所有物品ID
@@ -104,36 +125,43 @@ class ItemCF:
         recommendations = sorted(item_scores.items(), key=lambda x: x[1], reverse=True)
         return recommendations[:k]
 
-# 使用示例
-if __name__ == "__main__":
+def test_itemcf_with_ml1m():
+    """测试ItemCF在ml-1m数据集上的实现"""
     # 创建ItemCF实例
     itemcf = ItemCF()
     
-    # 添加用户评分数据 (用户ID, 物品ID, 评分)
-    # 假设我们有5个用户对5部电影的评分数据
-    ratings = [
-        (1, 101, 5), (1, 102, 3), (1, 103, 4),
-        (2, 101, 4), (2, 102, 2), (2, 104, 5),
-        (3, 102, 4), (3, 103, 5), (3, 104, 3),
-        (4, 101, 5), (4, 104, 4), (4, 105, 3),
-        (5, 103, 4), (5, 104, 5), (5, 105, 2)
-    ]
+    # 从ml-1m数据集加载数据（这里只加载前10000条记录用于测试）
+    print("正在加载ml-1m数据集...")
+    itemcf.load_ml1m_data("../../data/ml-1m/ratings.dat", max_lines=10000)
     
-    # 添加评分数据到模型
-    for user_id, item_id, rating in ratings:
-        itemcf.add_user_item_rating(user_id, item_id, rating)
+    # 检查数据加载是否成功
+    assert len(itemcf.user_item_matrix) > 0, "用户-物品评分矩阵为空"
+    print(f"加载了 {len(itemcf.user_item_matrix)} 个用户的数据")
     
     # 计算物品相似度
+    print("正在计算物品相似度...")
     itemcf.calculate_item_similarity()
     
-    # 查看物品101最相似的物品
-    print("与物品101最相似的物品:")
-    similar_items = itemcf.get_similar_items(101, 5)
+    # 检查相似度矩阵是否生成
+    assert len(itemcf.item_similarity_matrix) > 0, "物品相似度矩阵为空"
+    print(f"计算了 {len(itemcf.item_similarity_matrix)} 个物品的相似度")
+    
+    # 查看物品1193最相似的物品
+    print("\\n与物品1193最相似的物品:")
+    similar_items = itemcf.get_similar_items(1193, 5)
     for item, similarity in similar_items:
         print(f"  物品{item}: 相似度 {similarity:.4f}")
     
     # 为用户1生成推荐
-    print("\n为用户1推荐的物品:")
+    print("\\n为用户1推荐的物品:")
     recommendations = itemcf.recommend(1, 5)
     for item, score in recommendations:
         print(f"  物品{item}: 推荐分数 {score:.4f}")
+    
+    # 验证推荐结果
+    assert len(recommendations) <= 5, "推荐物品数量超过限制"
+    print("\\n测试通过！")
+
+# 使用示例
+if __name__ == "__main__":
+    test_itemcf_with_ml1m()
