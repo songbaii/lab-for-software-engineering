@@ -29,7 +29,8 @@ def login():
                 'message': "未接收到信息"
             }), 400
 
-        if not isinstance(data, dict):
+        # 对应雨根本不存在这个属性的情况
+        if not isinstance(data, dict) or 'user_id' not in data or 'password' not in data:
             return jsonify({
                 'success': False,
                 'message': "请求数据格式错误"
@@ -38,33 +39,26 @@ def login():
         # 检查参数是否存在
         user_id = data.get('user_id')
         password = data.get('password')
-        if user_id is None or password is None:
+
+        # 去除空格并检查空值
+        user_id = str(user_id).strip()
+        password = str(password).strip()
+
+        # 对应全是空格的情况
+        if not user_id or not password:
             return jsonify({
                 'success': False,
                 'message': "用户ID和密码不能为空"
             }), 400
 
-        # 去除空格并检查空值
-        user_id_str = str(data.user_id).strip()
-        password = str(data.password).strip()
-        user_id = int(data.get('user_id'))
-        password = data.get('password')
-
-        if not user_id or not password:
-            return (jsonify({
-                'success': False,
-                'messge': "传递信息存在缺失",
-                'user_id': user_id,
-                'password': password
-            }), 400)
-
         # 在数据库中查找用户
+        user_id = int(user_id)
         user = User.query.filter_by(user_id=user_id).first()
 
         if not user:
             return jsonify({
                 'success': False,
-                'messge': "不存在该用户"
+                'message': "不存在该用户"
             }), 401
 
         # 验证密码
@@ -76,7 +70,7 @@ def login():
         else:
             return jsonify({
                 'success': False,
-                "messge": "密码错误"
+                "message": "密码错误"
             }), 401
     except Exception as e:
         return jsonify({

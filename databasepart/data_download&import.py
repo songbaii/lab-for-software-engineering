@@ -236,7 +236,7 @@ def create_user_table_batch(ratings_df, tags_df, connection_string):
 
     users_df = pd.DataFrame({
         'user_id': all_user_ids,
-        'pass_word': ['0'] * len(all_user_ids),
+        'password': ['0'] * len(all_user_ids),
         'user_name': [None] * len(all_user_ids)
     })
 
