@@ -18,65 +18,67 @@ def login():
     接收JSON格式: {"user_id": "用户账号" number类型, "password": "密码" string类型}
     返回JSON格式: {"success": "登录结果" boolean类型, "message": "提示信息" string类型}
     """
-    try:
-        # 获取前端发送的数据
-        data = request.get_json()
 
-        # 验证数据完整性
-        if not data:
-            return jsonify({
-                'success': False,
-                'message': "未接收到信息"
-            }), 400
-
-        # 对应雨根本不存在这个属性的情况
-        if not isinstance(data, dict) or 'user_id' not in data or 'password' not in data:
-            return jsonify({
-                'success': False,
-                'message': "请求数据格式错误"
-            }), 400
-
-        # 检查参数是否存在
-        user_id = data.get('user_id')
-        password = data.get('password')
-
-        # 去除空格并检查空值
-        user_id = str(user_id).strip()
-        password = str(password).strip()
-
-        # 对应全是空格的情况
-        if not user_id or not password:
-            return jsonify({
-                'success': False,
-                'message': "用户ID和密码不能为空"
-            }), 400
-
-        # 在数据库中查找用户
-        user_id = int(user_id)
-        user = User.query.filter_by(user_id=user_id).first()
-
-        if not user:
-            return jsonify({
-                'success': False,
-                'message': "不存在该用户"
-            }), 401
-
-        # 验证密码
-        if user.check_password(password):
-            return jsonify({
-                'success': True,
-                'message': "登录成功"
-            }), 200
-        else:
-            return jsonify({
-                'success': False,
-                "message": "密码错误"
-            }), 401
-    except Exception as e:
+    # 获取前端发送的数据
+    # 验证数据完整性
+    if not request.is_json:
         return jsonify({
             'success': False,
-            'message': "未知错误"
-        }), 500
+            'message': "请求数据格式错误"
+        }), 400
+
+    data = request.get_json()
+    # 对应雨根本不存在这个属性的情况
+    if not isinstance(data, dict) or 'user_id' not in data or 'password' not in data:
+        return jsonify({
+            'success': False,
+            'message': "请求数据格式错误"
+        }), 400
+
+    # 检查参数是否存在
+    user_id = data.get('user_id')
+    password = data.get('password')
+
+    # 去除空格并检查空值
+    user_id = str(user_id).strip()
+    password = str(password).strip()
+
+    # 对应全是空格的情况
+    if not user_id or not password:
+        return jsonify({
+            'success': False,
+            'message': "用户ID和密码不能为空"
+        }), 400
+
+    try:
+        user_id = int(user_id)
+    except Exception:
+        return jsonify({
+            'success': False,
+            'message': "用户id输入存在问题"
+        }), 400
+
+    # 在数据库中查找用户
+    user = User.query.filter_by(user_id=user_id).first()
+
+    if not user:
+        return jsonify({
+            'success': False,
+            'message': "不存在该用户"
+        }), 401
+
+    # 验证密码
+    if user.check_password(password):
+        return jsonify({
+            'success': True,
+            'message': "登录成功"
+        }), 200
+    else:
+        return jsonify({
+            'success': False,
+            "message": "密码错误"
+        }), 401
+
 
 
 @app.route('/api/register', methods=['POST'])
