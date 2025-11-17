@@ -12,3 +12,8 @@ class Config:
     SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = secrets.token_hex(32)
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'connect_args': {
+            'init_command': "SET SESSION sql_mode='NO_ENGINE_SUBSTITUTION'"
+        }
+    }
