@@ -104,7 +104,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-
+import { apiService } from '../utils/api.js';
 // 路由实例
 const router = useRouter();
 
@@ -177,24 +177,34 @@ const handleLogin = async () => {
     // 登录中状态
     isLoading.value = true;
     
-    // TODO: 实际项目中替换为真实的登录接口请求
-    console.log('登录请求参数:', form.value);
+    // 发送登录请求
+    const response = await apiService.post('/api/login', {
+      username: form.value.username,
+      password: form.value.password
+    });
     
-    // 模拟接口请求延迟
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // 解析响应
+    // const result = await response.json();
+    const result = response;
     
-    // TODO: 根据接口返回结果处理
-    // 成功示例：
-    // 1. 保存用户信息到本地存储（如果需要记住登录状态）
-    if (form.value.remember) {
-      localStorage.setItem('userInfo', JSON.stringify({ username: form.value.username }));
-    } else {
-      sessionStorage.setItem('userInfo', JSON.stringify({ username: form.value.username }));
+    if (result.success) {
+      // 登录成功处理
+      if (form.value.remember) {
+        localStorage.setItem('userInfo', JSON.stringify({ username: form.value.username }));
+      } else {
+        sessionStorage.setItem('userInfo', JSON.stringify({ username: form.value.username }));
+      }
+      
+      // 跳转到首页
+      console.log('登录成功，跳转到首页');
+      // 实际项目中取消注释下面的路由跳转
+      // router.push('/');
+      } else {
+      // 登录失败处理
+      console.error('登录失败');
+      // 可以在这里添加错误提示，例如：
+      // ElMessage.error('登录失败，请检查账号密码是否正确');
     }
-    
-    // 2. 跳转到首页（实际项目中使用路由跳转）
-    console.log('登录成功，跳转到首页');
-    
   } catch (error) {
     // 错误处理
     console.error('登录失败:', error);
