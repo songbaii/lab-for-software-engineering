@@ -9,25 +9,25 @@
 
       <!-- 登录表单 -->
       <form @submit.prevent="handleLogin" class="login-form">
-        <!-- 用户名输入框 -->
+        <!-- 用户账号输入框 -->
         <div class="form-group">
-          <label class="form-label" for="username">用户名</label>
+          <label class="form-label" for="user_id">用户账号</label>
           <div class="input-wrapper">
             <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
             <input
-              id="username"
-              v-model.trim="form.username"
-              type="text"
+              id="user_id"
+              v-model.number="form.user_id"
+              type="number"
               class="form-input"
-              placeholder="请输入用户名"
+              placeholder="请输入用户账号"
               :disabled="isLoading"
-              @blur="validateField('username')"
+              @blur="validateField('user_id')"
             />
           </div>
-          <p v-if="formErrors.username" class="error-message">{{ formErrors.username }}</p>
+          <p v-if="formErrors.user_id" class="error-message">{{ formErrors.user_id }}</p>
         </div>
 
         <!-- 密码输入框 -->
@@ -77,6 +77,11 @@
           <a href="#" class="forgot-password" :disabled="isLoading">忘记密码?</a>
         </div>
 
+        <!-- 登录错误提示 -->
+        <div v-if="loginError" class="login-error-message">
+          {{ loginError }}
+        </div>
+
         <!-- 登录按钮 -->
         <button
           type="submit"
@@ -110,7 +115,7 @@ const router = useRouter();
 
 // 表单数据
 const form = ref({
-  username: '',
+  user_id: null, 
   password: '',
   remember: false
 });
@@ -119,6 +124,7 @@ const form = ref({
 const showPassword = ref(false);
 const isLoading = ref(false);
 const formErrors = ref({});
+const loginError = ref('');
 
 /**
  * 验证单个字段
@@ -128,9 +134,11 @@ const validateField = (field) => {
   formErrors.value[field] = '';
   
   switch (field) {
-    case 'username':
-      if (!form.value.username) {
-        formErrors.value.username = '用户名不能为空';
+    case 'user_id':
+      if (!form.value.user_id && form.value.user_id !== 0) {
+        formErrors.value.user_id = '用户账号不能为空';
+      } else if (isNaN(form.value.user_id)) {
+        formErrors.value.user_id = '用户账号必须是数字';
       }
       break;
     case 'password':
@@ -150,9 +158,11 @@ const validateField = (field) => {
 const validateForm = () => {
   const errors = {};
   
-  // 验证用户名
-  if (!form.value.username) {
-    errors.username = '用户名不能为空';
+  // 验证用户账号
+  if (!form.value.user_id && form.value.user_id !== 0) {
+    errors.user_id = '用户账号不能为空';
+  } else if (isNaN(form.value.user_id)) {
+    errors.user_id = '用户账号必须是数字';
   }
   
   // 验证密码
@@ -170,6 +180,8 @@ const validateForm = () => {
  * 登录处理函数（框架）
  */
 const handleLogin = async () => {
+  // 清除之前的错误信息
+  loginError.value = '';
   // 表单验证
   if (!validateForm()) return;
   
@@ -179,7 +191,7 @@ const handleLogin = async () => {
     
     // 发送登录请求
     const response = await apiService.post('/api/login', {
-      username: form.value.username,
+      user_id: Number(form.value.user_id),
       password: form.value.password
     });
     
@@ -190,9 +202,9 @@ const handleLogin = async () => {
     if (result.success) {
       // 登录成功处理
       if (form.value.remember) {
-        localStorage.setItem('userInfo', JSON.stringify({ username: form.value.username }));
+        localStorage.setItem('userInfo', JSON.stringify({ user_id: form.value.user_id }));
       } else {
-        sessionStorage.setItem('userInfo', JSON.stringify({ username: form.value.username }));
+        sessionStorage.setItem('userInfo', JSON.stringify({ user_id: form.value.user_id }));
       }
       
       // 跳转到首页
@@ -202,14 +214,13 @@ const handleLogin = async () => {
       } else {
       // 登录失败处理
       console.error('登录失败');
-      // 可以在这里添加错误提示，例如：
-      // ElMessage.error('登录失败，请检查账号密码是否正确');
+      // 设置错误信息
+      loginError.value = result.message || '登录失败，请检查账号密码是否正确';
     }
   } catch (error) {
     // 错误处理
     console.error('登录失败:', error);
-    // 可以在这里添加全局错误提示，例如使用 ElMessage
-    // ElMessage.error('登录失败，请检查账号密码是否正确');
+    loginError.value = '登录请求失败，请稍后重试';
   } finally {
     // 恢复状态
     isLoading.value = false;
@@ -332,6 +343,17 @@ const handleLogin = async () => {
   color: #ef4444;
 }
 
+.login-error-message {
+  padding: 12px 16px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 16px;
+  animation: slideDown 0.3s ease;
+}
 /* 表单操作区 */
 .form-actions {
   display: flex;
