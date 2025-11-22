@@ -1,33 +1,33 @@
 <template>
-  <div class="login-container">
-    <!-- 登录卡片 -->
-    <div class="login-card">
-      <div class="login-header">
-        <h2 class="login-title">系统登录</h2>
-        <p class="login-desc">请输入账号密码登录</p>
+  <div class="register-container">
+    <!-- 注册卡片 -->
+    <div class="register-card">
+      <div class="register-header">
+        <h2 class="register-title">用户注册</h2>
+        <p class="register-desc">请输入账号信息完成注册</p>
       </div>
 
-      <!-- 登录表单 -->
-      <form @submit.prevent="handleLogin" class="login-form">
-        <!-- 用户账号输入框 -->
+      <!-- 注册表单 -->
+      <form @submit.prevent="handleRegister" class="register-form">
+        <!-- 用户名输入框 -->
         <div class="form-group">
-          <label class="form-label" for="user_id">用户账号</label>
+          <label class="form-label" for="user_name">用户名</label>
           <div class="input-wrapper">
             <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
             <input
-              id="user_id"
-              v-model.number="form.user_id"
-              type="number"
+              id="user_name"
+              v-model.trim="form.user_name"
+              type="text"
               class="form-input"
-              placeholder="请输入用户账号"
+              placeholder="请输入用户名"
               :disabled="isLoading"
-              @blur="validateField('user_id')"
+              @blur="validateField('user_name')"
             />
           </div>
-          <p v-if="formErrors.user_id" class="error-message">{{ formErrors.user_id }}</p>
+          <p v-if="formErrors.user_name" class="error-message">{{ formErrors.user_name }}</p>
         </div>
 
         <!-- 密码输入框 -->
@@ -64,31 +64,59 @@
           <p v-if="formErrors.password" class="error-message">{{ formErrors.password }}</p>
         </div>
 
-        <!-- 记住密码和忘记密码 -->
-        <div class="form-actions">
-          <label class="remember-checkbox">
+        <!-- 确认密码输入框 -->
+        <div class="form-group">
+          <label class="form-label" for="confirmPassword">确认密码</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
             <input
-              type="checkbox"
-              v-model="form.remember"
+              id="confirmPassword"
+              v-model.trim="form.confirmPassword"
+              :type="showConfirmPassword ? 'text' : 'password'"
+              class="form-input"
+              placeholder="请再次输入密码"
               :disabled="isLoading"
+              @blur="validateField('confirmPassword')"
             />
-            <span class="checkbox-text">记住我</span>
-          </label>
-          <a href="#" class="forgot-password" :disabled="isLoading">忘记密码?</a>
+            <button
+              type="button"
+              class="toggle-password"
+              @click="showConfirmPassword = !showConfirmPassword"
+              :disabled="isLoading"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path v-if="!showConfirmPassword" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle v-if="!showConfirmPassword" cx="12" cy="12" r="3"></circle>
+                <path v-if="showConfirmPassword" d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68L23 12z"></path>
+                <line v-if="showConfirmPassword" x1="1" y1="12" x2="23" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+          <p v-if="formErrors.confirmPassword" class="error-message">{{ formErrors.confirmPassword }}</p>
         </div>
 
-        <!-- 登录错误提示 -->
-        <div v-if="loginError" class="login-error-message">
-          {{ loginError }}
+        <!-- 注册错误提示 -->
+        <div v-if="registerError" class="register-error-message">
+          {{ registerError }}
         </div>
 
-        <!-- 登录按钮 -->
+        <!-- 注册成功提示 -->
+        <div v-if="registerSuccess" class="register-success-message">
+          <p>注册成功！</p>
+          <p>您的用户ID是：<strong>{{ assignedUserId }}</strong></p>
+          <p>请牢记您的用户ID，用于登录系统。</p>
+        </div>
+
+        <!-- 注册按钮 -->
         <button
           type="submit"
-          class="login-btn"
-          :disabled="isLoading"
+          class="register-btn"
+          :disabled="isLoading || registerSuccess"
         >
-          <span v-if="!isLoading">登录</span>
+          <span v-if="!isLoading">注册</span>
           <span v-if="isLoading" class="loading-spinner">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
@@ -98,9 +126,9 @@
         </button>
       </form>
 
-      <!-- 注册链接 -->
-      <div class="register-link">
-        还没有账号? <router-link to="/register">立即注册</router-link>
+      <!-- 登录链接 -->
+      <div class="login-link">
+        已有账号? <router-link to="/login">立即登录</router-link>
       </div>
     </div>
   </div>
@@ -110,22 +138,25 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiService } from '../utils/api.js';
-import Register from './Register.vue';
+
 // 路由实例
 const router = useRouter();
 
 // 表单数据
 const form = ref({
-  user_id: null, 
+  user_name: '',
   password: '',
-  remember: false
+  confirmPassword: ''
 });
 
 // 状态管理
 const showPassword = ref(false);
+const showConfirmPassword = ref(false);
 const isLoading = ref(false);
 const formErrors = ref({});
-const loginError = ref('');
+const registerError = ref('');
+const registerSuccess = ref(false);
+const assignedUserId = ref(null);
 
 /**
  * 验证单个字段
@@ -135,11 +166,11 @@ const validateField = (field) => {
   formErrors.value[field] = '';
   
   switch (field) {
-    case 'user_id':
-      if (!form.value.user_id && form.value.user_id !== 0) {
-        formErrors.value.user_id = '用户账号不能为空';
-      } else if (isNaN(form.value.user_id)) {
-        formErrors.value.user_id = '用户账号必须是数字';
+    case 'user_name':
+      if (!form.value.user_name.trim()) {
+        formErrors.value.user_name = '用户名不能为空';
+      } else if (form.value.user_name.length < 3) {
+        formErrors.value.user_name = '用户名长度不能少于3位';
       }
       break;
     case 'password':
@@ -147,6 +178,13 @@ const validateField = (field) => {
         formErrors.value.password = '密码不能为空';
       } else if (form.value.password.length < 6) {
         formErrors.value.password = '密码长度不能少于6位';
+      }
+      break;
+    case 'confirmPassword':
+      if (!form.value.confirmPassword) {
+        formErrors.value.confirmPassword = '请确认密码';
+      } else if (form.value.password !== form.value.confirmPassword) {
+        formErrors.value.confirmPassword = '两次输入的密码不一致';
       }
       break;
   }
@@ -159,11 +197,11 @@ const validateField = (field) => {
 const validateForm = () => {
   const errors = {};
   
-  // 验证用户账号
-  if (!form.value.user_id && form.value.user_id !== 0) {
-    errors.user_id = '用户账号不能为空';
-  } else if (isNaN(form.value.user_id)) {
-    errors.user_id = '用户账号必须是数字';
+  // 验证用户名
+  if (!form.value.user_name.trim()) {
+    errors.user_name = '用户名不能为空';
+  } else if (form.value.user_name.length < 3) {
+    errors.user_name = '用户名长度不能少于3位';
   }
   
   // 验证密码
@@ -173,55 +211,64 @@ const validateForm = () => {
     errors.password = '密码长度不能少于6位';
   }
   
+  // 验证确认密码
+  if (!form.value.confirmPassword) {
+    errors.confirmPassword = '请确认密码';
+  } else if (form.value.password !== form.value.confirmPassword) {
+    errors.confirmPassword = '两次输入的密码不一致';
+  }
+  
   formErrors.value = errors;
   return Object.keys(errors).length === 0;
 };
 
 /**
- * 登录处理函数（框架）
+ * 注册处理函数
  */
-const handleLogin = async () => {
+const handleRegister = async () => {
   // 清除之前的错误信息
-  loginError.value = '';
+  registerError.value = '';
+  registerSuccess.value = false;
+  assignedUserId.value = null;
+  
   // 表单验证
   if (!validateForm()) return;
   
   try {
-    // 登录中状态
+    // 注册中状态
     isLoading.value = true;
     
-    // 发送登录请求
-    const response = await apiService.post('/api/login', {
-      user_id: Number(form.value.user_id),
+    // 发送注册请求
+    const response = await apiService.post('/api/register', {
+      user_name: form.value.user_name,
       password: form.value.password
     });
     
     // 解析响应
-    // const result = await response.json();
     const result = response;
     
     if (result.success) {
-      // 登录成功处理
-      if (form.value.remember) {
-        localStorage.setItem('userInfo', JSON.stringify({ user_id: form.value.user_id }));
-      } else {
-        sessionStorage.setItem('userInfo', JSON.stringify({ user_id: form.value.user_id }));
-      }
+      // 注册成功处理
+      registerSuccess.value = true;
+      assignedUserId.value = result.user_id;
       
-      // 跳转到首页
-      console.log('登录成功，跳转到首页');
-      // 实际项目中取消注释下面的路由跳转
-      // router.push('/');
-      } else {
-      // 登录失败处理
-      console.error('登录失败');
-      // 设置错误信息
-      loginError.value = result.message || '登录失败，请检查账号密码是否正确';
+      // 清空表单
+      form.value = {
+        user_name: '',
+        password: '',
+        confirmPassword: ''
+      };
+      
+      console.log('注册成功,分配的用户ID=', result.user_id);
+    } else {
+      // 注册失败处理
+      console.error('注册失败');
+      registerError.value = result.message || '注册失败，请稍后重试';
     }
   } catch (error) {
     // 错误处理
-    console.error('登录失败:', error);
-    loginError.value = '登录请求失败，请稍后重试';
+    console.error('注册失败:', error);
+    registerError.value = '注册请求失败，请稍后重试';
   } finally {
     // 恢复状态
     isLoading.value = false;
@@ -231,7 +278,7 @@ const handleLogin = async () => {
 
 <style scoped>
 /* 全局容器 */
-.login-container {
+.register-container {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -240,8 +287,8 @@ const handleLogin = async () => {
   padding: 20px;
 }
 
-/* 登录卡片 */
-.login-card {
+/* 注册卡片 */
+.register-card {
   width: 100%;
   max-width: 420px;
   background: #fff;
@@ -251,27 +298,27 @@ const handleLogin = async () => {
   backdrop-filter: blur(4px);
 }
 
-/* 登录头部 */
-.login-header {
+/* 注册头部 */
+.register-header {
   text-align: center;
   margin-bottom: 30px;
 }
 
-.login-title {
+.register-title {
   font-size: 24px;
   font-weight: 600;
   color: #1e293b;
   margin-bottom: 8px;
 }
 
-.login-desc {
+.register-desc {
   font-size: 14px;
   color: #64748b;
   margin: 0;
 }
 
 /* 表单样式 */
-.login-form {
+.register-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -344,7 +391,7 @@ const handleLogin = async () => {
   color: #ef4444;
 }
 
-.login-error-message {
+.register-error-message {
   padding: 12px 16px;
   background-color: #fef2f2;
   border: 1px solid #fecaca;
@@ -355,48 +402,26 @@ const handleLogin = async () => {
   margin-bottom: 16px;
   animation: slideDown 0.3s ease;
 }
-/* 表单操作区 */
-.form-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 8px;
+
+.register-success-message {
+  padding: 16px;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  color: #166534;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 16px;
+  animation: slideDown 0.3s ease;
 }
 
-.remember-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #64748b;
-  cursor: pointer;
+.register-success-message strong {
+  font-size: 18px;
+  color: #059669;
 }
 
-.remember-checkbox input {
-  width: 14px;
-  height: 14px;
-  accent-color: #667eea;
-}
-
-.forgot-password {
-  font-size: 13px;
-  color: #667eea;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.forgot-password:hover {
-  color: #556cd6;
-  text-decoration: underline;
-}
-
-.forgot-password:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-/* 登录按钮 */
-.login-btn {
+/* 注册按钮 */
+.register-btn {
   width: 100%;
   padding: 14px;
   background: #667eea;
@@ -413,11 +438,11 @@ const handleLogin = async () => {
   gap: 8px;
 }
 
-.login-btn:hover {
+.register-btn:hover {
   background: #556cd6;
 }
 
-.login-btn:disabled {
+.register-btn:disabled {
   background: #a5b4fc;
   cursor: not-allowed;
 }
@@ -435,33 +460,33 @@ const handleLogin = async () => {
   }
 }
 
-/* 注册链接 */
-.register-link {
+/* 登录链接 */
+.login-link {
   margin-top: 24px;
   text-align: center;
   font-size: 14px;
   color: #64748b;
 }
 
-.register-link a {
+.login-link a {
   color: #667eea;
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
 }
 
-.register-link a:hover {
+.login-link a:hover {
   color: #556cd6;
   text-decoration: underline;
 }
 
 /* 响应式调整 */
 @media (max-width: 480px) {
-  .login-card {
+  .register-card {
     padding: 30px 20px;
   }
   
-  .login-title {
+  .register-title {
     font-size: 22px;
   }
   
@@ -469,7 +494,7 @@ const handleLogin = async () => {
     padding: 12px 14px 12px 40px;
   }
   
-  .login-btn {
+  .register-btn {
     padding: 12px;
     font-size: 14px;
   }
