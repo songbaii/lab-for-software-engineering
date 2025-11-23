@@ -1,6 +1,6 @@
 import pytest
 from back_end import app, db
-from models import User
+from models import User, Movie, UserJudge
 
 @pytest.fixture
 def client():
@@ -118,6 +118,8 @@ class TestLoginWithMySQL:
         db.session.delete(test_user)
         db.session.commit()
 
+class TestCreateNewUser:
+
     def test_create_new_user(self, client):
         """测试创建用户"""
         data = {
@@ -133,6 +135,107 @@ class TestLoginWithMySQL:
         test_user = User.query.filter_by(user_name='test1').first()
         db.session.delete(test_user)
         db.session.commit()
+
+class TestRating:
+    def test_rating_add_none(self, client):
+        response = client.post('/api/judge', json=None)
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 400
+        assert response.get_json()['success'] == False
+
+    def test_rating_add_no_rating(self, client):
+        response = client.post('/api/judge', json={'user_id': 1, 'movie_id': 2})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 400
+        assert response.get_json()['success'] == False
+
+    def test_rating_add_null(self, client):
+        response = client.post('/api/judge', json={'user_id': 1, 'movie_id': 2, 'rating': ' '})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 400
+        assert response.get_json()['success'] == False
+
+    def test_rating_add_wrong_type(self, client):
+        response = client.post('/api/judge', json={'user_id': 1, 'movie_id': 2, 'rating': 'wrong type'})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 400
+        assert response.get_json()['success'] == False
+
+    def test_rating_add_no_user(self, client):
+        test_user = User(user_name='123', password='testpass')
+        test_user = User(user_name='123', password='testpass')
+        db.session.add(test_user)
+        db.session.commit()
+        test_user_id = test_user.user_id
+        db.session.delete(test_user)
+        db.session.commit()
+        response = client.post('/api/judge', json={'user_id': test_user_id, 'movie_id': 2, 'rating': 3})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 401
+        assert response.get_json()['success'] == False
+
+    def test_rating_add_wrong_rating(self, client):
+        test_user = User(user_name='123', password='testpass')
+        db.session.add(test_user)
+        db.session.commit()
+        test_user_id = test_user.user_id
+        test_movie = Movie(movie_name='test', release_year=1999)
+        db.session.add(test_movie)
+        db.session.commit()
+        test_movie_id = test_movie.movie_id
+        response = client.post('/api/judge', json={'user_id': test_user_id, 'movie_id': test_movie_id, 'rating': 2.1})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 401
+        assert response.get_json()['success'] == False
+        db.session.delete(test_user)
+        db.session.delete(test_movie)
+        db.session.commit()
+
+    def test_rating_add_out_of_range(self, client):
+        test_user = User(user_name='123', password='testpass')
+        db.session.add(test_user)
+        db.session.commit()
+        test_user_id = test_user.user_id
+        test_movie = Movie(movie_name='test', release_year=1999)
+        db.session.add(test_movie)
+        db.session.commit()
+        test_movie_id = test_movie.movie_id
+        response = client.post('/api/judge', json={'user_id': test_user_id, 'movie_id': test_movie_id, 'rating': -1})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 401
+        assert response.get_json()['success'] == False
+        db.session.delete(test_user)
+        db.session.delete(test_movie)
+        db.session.commit()
+
+    def test_rating_add_success(self, client):
+        test_user = User(user_name='123', password='testpass')
+        db.session.add(test_user)
+        db.session.commit()
+        test_user_id = test_user.user_id
+        test_movie = Movie(movie_name='test', release_year=1999)
+        db.session.add(test_movie)
+        db.session.commit()
+        test_movie_id = test_movie.movie_id
+        response = client.post('/api/judge', json={'user_id': test_user_id, 'movie_id': test_movie_id, 'rating': 2})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 201
+        assert response.get_json()['success'] == True
+        test_rating = UserJudge.query.filter_by(user_id=test_user_id, movie_id=test_movie_id).first()
+        db.session.delete(test_rating)
+        db.session.commit()
+        db.session.delete(test_user)
+        db.session.delete(test_movie)
+        db.session.commit()
+
 
 
 
