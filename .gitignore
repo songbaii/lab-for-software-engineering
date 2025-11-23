@@ -1,7 +1,9 @@
 .idea
 .vscode
 venv
+databasepart/__pycache__
 __pycache__
 .env
 .pytest_cache
 *.pyc
+*data
