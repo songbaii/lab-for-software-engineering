@@ -15,4 +15,6 @@
     + 修改Frontend\SElab\.env.development
     令环境变量`VITE_APP_MSW_ENABLED=false`
     + 然后在Frontend/SElab 目录下使用`npm run dev`命令运行前端
-**注意**：修改环境变量后再次运行前端，配置**不会**自动恢复
+**注意**：
++ 修改环境变量后再次运行前端，配置**不会**自动恢复
++ 检查Frontend\SElab\.env.development中VITE_APP_BACKEND_URL变量对应端口，要和后端端口一致

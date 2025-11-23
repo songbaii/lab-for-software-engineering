@@ -19,7 +19,7 @@ export default defineConfig({
     proxy: {
       // 当MSW禁用时，将API请求代理到真实后端
       '/api': {
-        target: 'http://localhost:3000', // 你的真实后端地址
+        target: process.env.VITE_APP_BACKEND_URL,
         changeOrigin: true,
         // rewrite: (path) => path.replace(/^\/api/, '')
       }
