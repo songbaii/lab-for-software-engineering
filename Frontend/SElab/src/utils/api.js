@@ -21,12 +21,19 @@ class ApiService {
 
     try {
       const response = await fetch(fullUrl, config)
-      const data = await response.json()
       
       if (!response.ok) {
-        throw new Error(data.message || '请求失败')
+        // 尝试解析错误信息，如果失败则使用默认错误
+        let errorData
+        try {
+          errorData = await response.json()
+        } catch {
+          errorData = { message: `HTTP错误: ${response.status}` }
+        }
+        throw new Error(errorData.message || '请求失败')
       }
       
+      const data = await response.json()
       return data
     } catch (error) {
       console.error('API请求错误:', error)
@@ -35,8 +42,10 @@ class ApiService {
       const errorMessage = {
         success: false,
         message: error.message || '请求失败',
+        error: error,
       }
-      return JSON.stringify(errorMessage)
+      throw errorMessage
+      // return JSON.stringify(errorMessage)
     }
   }
 
