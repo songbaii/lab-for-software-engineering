@@ -11,7 +11,7 @@ db.init_app(app)
 
 from models import Movie, MovieGenre, UserJudge, UserComment, User, GenreTable
 
-@app.route('/api/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])# already check
 def login():
     """
     用户登录接口
@@ -79,9 +79,7 @@ def login():
     except Exception:
         return jsonify({'success': False, 'message': "系统错误"}), 500
 
-
-
-@app.route('/api/register', methods=['POST'])
+@app.route('/api/register', methods=['POST'])# check
 def register():
     """
     用户注册接口
@@ -130,6 +128,93 @@ def register():
     except Exception:
         return jsonify({'success': False, 'message': "系统错误"}), 500
 
+@app.route('/api/judge', methods=['POST'])
+def judge():
+    """
+    用户评分接口
+    接受的JSON格式: {"user_id": "用户账号" number类型， "movie_id": "电影id" number类型， "rating": "用户评分" number类型}
+    返回的JSON格式: {"success": "评分结果" boolean类型， "message": "提示信息" string类型}
+    """
+    try:
+        if not request.is_json:
+            return jsonify({
+                'success': False,
+                'message': "评分数据格式错误"
+            }), 400
+
+        data = request.get_json()
+
+        # 对应根本不存在这个属性的情况
+        if not isinstance(data, dict) or 'user_id' not in data or 'movie_id' not in data or 'rating' not in data:
+            return jsonify({
+                'success': False,
+                'message': "评分属性缺失"
+            }), 400
+
+        user_id = str(data.get('user_id')).strip()
+        movie_id = str(data.get('movie_id')).strip()
+        rating = str(data.get('rating')).strip()
+
+        if not user_id or not movie_id or not rating:
+            return jsonify({
+                'success': False,
+                'message': '用户id，电影id，评分均不能为空',
+            }), 400
+
+        try:
+            user_id = int(user_id)
+        except Exception:
+            return jsonify({
+                'success': False,
+                'message': "用户id输入存在问题"
+            }), 400
+
+        try:
+            movie_id = int(movie_id)
+        except Exception:
+            return jsonify({
+                'success': False,
+                'message': "电影id输入存在问题"
+            }), 400
+
+        try:
+            rating = float(rating)
+        except Exception:
+            return jsonify({
+                'success': False,
+                'message': "评分输入存在问题"
+            }), 400
+
+        user = User.query.filter_by(user_id=user_id).first()
+        movie = Movie.query.filter_by(movie_id=movie_id).first()
+
+        if not user:
+            return jsonify({
+                'success': False,
+                'message': "不存在该用户"
+            }), 401
+
+        if not movie:
+            return jsonify({
+                'success': False,
+                'message': "不存在这一部电影"
+            }), 401
+
+        if not ((rating > 0) and (rating <= 5) and (rating * 2 == int(rating * 2))):
+            return jsonify({
+                'success': False,
+                'message': "电影的评分不符合评分要求"
+            }), 401
+        else:
+            new_user_judge = UserJudge(user_id=user_id, movie_id=movie_id, rating=rating)
+            db.session.merge(new_user_judge)
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'message': '成功评分！！！',
+            }), 201
+    except Exception:
+        return jsonify({'success': False, 'message': "系统错误"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

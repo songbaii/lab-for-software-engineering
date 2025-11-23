@@ -4,6 +4,11 @@ import os
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy import text
+from sqlalchemy.engine import connection_memoize
+
+# 数据库链接语句
+connection_string_set = "mysql+pymysql://violet:s131601@localhost:3306/soft_ware_engineering"
+# connection_string = "mysql+pymysql://user:passowrd@localhost:端口/数据库"
 
 def download_movielens():
     """下载数据集"""
@@ -66,6 +71,8 @@ def data_load(show = False):
                          names=['UserID', 'MovieID', 'Rating', 'Timestamp'],
                          encoding='utf-8')
 
+    # print(ratings['Rating'].describe())
+
     # 2. 导入电影数据 (movies.dat)
     # 格式: MovieID::Title::Genres
     movies_file = os.path.join(data_path, "movies.dat")
@@ -75,6 +82,8 @@ def data_load(show = False):
                         names=['MovieID', 'Title', 'Genres'],
                         encoding='utf-8')
 
+    # print(movies['MovieID'].describe())
+
     # 3. 导入简评数据 (tag.dat)
     # 格式: UserID::MovieID::Tag::Timestamp
     tags_file = os.path.join(data_path, "tags.dat")
@@ -83,7 +92,6 @@ def data_load(show = False):
                        engine='python',
                        names=['UserID', 'MovieID', 'Tag', 'Timestamp'],
                        encoding='utf-8')
-
     # 显示数据基本信息
     if show:
         print("评分数据形状:", ratings.shape)
@@ -306,7 +314,8 @@ def data_import(ratings, movies, tags):
     # print(movies.head())
     # print(ratings.head())
     # print(tags.head())
-    connection_string = "mysql+pymysql://violet:s131601@localhost:3306/soft_ware_engineering"
+
+    connection_string = connection_string_set
     print("开始插入数据到数据库")
     movie_insert(movies, connection_string)
     print("开始插入类别到数据库")
