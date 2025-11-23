@@ -5,11 +5,37 @@ from sqlalchemy import text
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.config['JSON_AS_ASCII'] = False
 
 # 初始化数据库
 db.init_app(app)
 
 from models import Movie, MovieGenre, UserJudge, UserComment, User, GenreTable
+
+from sqlalchemy import text  # 确保导入text
+
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    try:
+        # 使用text()包装SQL表达式
+        db.session.execute(text('SELECT 1'))
+
+        return jsonify({
+            'success': True,
+            'message': '服务运行正常',
+            'database': '连接正常'
+        }), 200
+    except Exception as e:
+        print(f"健康检查失败: {e}")
+        import traceback
+        traceback.print_exc()
+
+        return jsonify({
+            'success': False,
+            'message': '数据库连接失败',
+            'error': str(e)
+        }), 500
 
 @app.route('/api/login', methods=['POST'])# already check
 def login():
@@ -76,7 +102,8 @@ def login():
                 'success': False,
                 "message": "密码错误"
             }), 401
-    except Exception:
+    except Exception as e:
+        print(f"发生错误: {e}")
         return jsonify({'success': False, 'message': "系统错误"}), 500
 
 @app.route('/api/register', methods=['POST'])# check
@@ -125,7 +152,8 @@ def register():
             'message': '注册成功',
             'user': new_user.user_id
         }), 201
-    except Exception:
+    except Exception as e:
+        print(f"发生错误: {e}")
         return jsonify({'success': False, 'message': "系统错误"}), 500
 
 @app.route('/api/judge', methods=['POST'])
