@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime, timezone
 
 db = SQLAlchemy()
 
@@ -27,6 +28,7 @@ class UserJudge(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), primary_key=True)
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.movie_id'), primary_key=True)
     rating = db.Column(db.DECIMAL(2, 1))  # DECIMAL(2,1) 对应 0.0 到 5.0
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))  # 添加时间戳字段
 
 
 class GenreTable(db.Model):
@@ -49,3 +51,4 @@ class UserComment(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), primary_key=True)
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.movie_id'), primary_key=True)
     comment = db.Column(db.String(1000))
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))  # 添加时间戳字段

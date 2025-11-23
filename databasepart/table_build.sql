@@ -1,3 +1,4 @@
+
 drop DATABASE soft_ware_engineering;
 create DATABASE if NOT EXISTS soft_ware_engineering;
 use soft_ware_engineering;
@@ -22,6 +23,7 @@ CREATE TABLE if NOT exists user_judge(
     user_id int,
     movie_id int,
     rating DECIMAL(2,1),
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,  # 添加时间戳字段
     Foreign Key (user_id) REFERENCES user(user_id),
     FOREIGN KEY (movie_id) REFERENCES movie(movie_id),
     PRIMARY KEY(user_id, movie_id),
@@ -46,6 +48,7 @@ create table if not exists user_comment(
     user_id int,
     movie_id int,
     comment VARCHAR(1000),
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,  # 添加时间戳字段
     FOREIGN KEY (user_id) REFERENCES user(user_id),
     FOREIGN KEY (movie_id) REFERENCES movie(movie_id),
     PRIMARY KEY(user_id, movie_id)
