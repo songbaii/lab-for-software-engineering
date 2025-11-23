@@ -5,6 +5,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy import text
 from sqlalchemy.engine import connection_memoize
+from dotenv import load_dotenv
 
 # 数据库链接语句
 connection_string_set = "mysql+pymysql://violet:s131601@localhost:3306/soft_ware_engineering"
@@ -314,8 +315,17 @@ def data_import(ratings, movies, tags):
     # print(movies.head())
     # print(ratings.head())
     # print(tags.head())
-
-    connection_string = connection_string_set
+    # connection_string = "mysql+pymysql://violet:s131601@localhost:3306/soft_ware_engineering"
+    # 从环境变量读取数据库连接信息
+    load_dotenv()
+    connection_string = (
+        f"mysql+pymysql://"
+        f"{os.getenv('MYSQL_USER', 'violet')}:"
+        f"{os.getenv('MYSQL_PASSWORD', 's131601')}@"
+        f"{os.getenv('MYSQL_HOST', 'localhost')}:"
+        f"{os.getenv('MYSQL_PORT', '3306')}/"
+        f"{os.getenv('MYSQL_DB', 'soft_ware_engineering')}"
+    )
     print("开始插入数据到数据库")
     movie_insert(movies, connection_string)
     print("开始插入类别到数据库")

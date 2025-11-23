@@ -1,5 +1,7 @@
 import os
 import secrets
+from dotenv import load_dotenv
+load_dotenv()
 
 class Config:
     # MySQL数据库配置
