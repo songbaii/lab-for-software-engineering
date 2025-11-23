@@ -53,3 +53,15 @@ create table if not exists user_comment(
     FOREIGN KEY (movie_id) REFERENCES movie(movie_id),
     PRIMARY KEY(user_id, movie_id)
 ); # check and done
+
+# 以下为推荐系统使用
+DROP TABLE IF EXISTS item_similarities;
+-- 创建 item_similarities 表（用于存 Top-K 相似物品）
+CREATE TABLE IF NOT EXISTS item_similarities (
+    movie_id INT NOT NULL,
+    similar_movie_id INT NOT NULL,
+    similarity DECIMAL(5,4) NOT NULL,
+    PRIMARY KEY (movie_id, similar_movie_id),
+    INDEX idx_movie_id (movie_id),
+    INDEX idx_similarity (similarity DESC)
+);

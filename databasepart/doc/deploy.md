@@ -4,4 +4,5 @@
 2. 启动本地数据库服务后，用table_build.sql创建数据库
 3. 新建.env文件 参考.env.example文件格式
 4. 运行databasepart/data_download&import.py导入数据
-5. 运行back_end.py启动后端服务
+5. 运行databasepart/compute_item_sim.py计算相似度矩阵，然后可以使用recommend.recommend_by_user_id函数进行推荐
+6. 运行back_end.py启动后端服务
