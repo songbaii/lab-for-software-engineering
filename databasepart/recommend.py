@@ -39,6 +39,14 @@ def get_popular_movies(conn, top_k: int, cursor=None):
         if close_conn:
             conn.close()
 
+"""
+    获取用户推荐
+    :param user_id: 用户ID
+    :param top_k: 推荐数量
+    :param min_sim: 最小相似度阈值
+    :param recent_ratings_limit: 取最近多少条评分记录
+    :return: 推荐结果列表
+"""
 def recommend_by_user_id(user_id: int, top_k=10, min_sim=0.01, recent_ratings_limit=None):
     print(f"🔍 开始为用户 {user_id} 生成推荐...")
     conn = pymysql.connect(**DB_CONFIG)
