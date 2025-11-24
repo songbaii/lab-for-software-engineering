@@ -1,34 +1,38 @@
 import pymysql
-import os
-from dotenv import load_dotenv
 from collections import defaultdict
 from config import DB_CONFIG
 
 def get_popular_movies(conn, top_k: int, cursor=None):
+    # ✅ 使用 movie_stats 汇总表，不再碰 user_judge 大表！
     sql = """
-    SELECT movie_id, movie_name, release_year
-    FROM (
-        SELECT 
-            m.movie_id, m.movie_name, m.release_year,
-            AVG(u.rating) AS avg_rating,
-            COUNT(*) AS vote_count
-        FROM user_judge u
-        JOIN movie m ON u.movie_id = m.movie_id
-        GROUP BY m.movie_id, m.movie_name, m.release_year
-        HAVING vote_count >= 50 AND avg_rating >= 4.0
-    ) t
-    ORDER BY avg_rating DESC, vote_count DESC
+    SELECT 
+        m.movie_id,
+        m.movie_name,
+        m.release_year
+    FROM movie_stats s
+    INNER JOIN movie m ON s.movie_id = m.movie_id
+    WHERE 
+        s.vote_count >= 50 
+        AND s.avg_rating >= 4.0
+    ORDER BY s.avg_rating DESC, s.vote_count DESC
     LIMIT %s
     """
+    
     close_conn = False
     if cursor is None:
         conn = pymysql.connect(**DB_CONFIG)
         cursor = conn.cursor()
         close_conn = True
+    
     try:
         cursor.execute(sql, (top_k,))
         return [
-            {"movie_id": r[0], "movie_name": r[1], "release_year": r[2], "score": 0.0}
+            {
+                "movie_id": r[0], 
+                "movie_name": r[1], 
+                "release_year": r[2], 
+                "score": 0.0  # 兜底推荐无预测分，保持接口一致
+            }
             for r in cursor.fetchall()
         ]
     finally:
@@ -59,7 +63,7 @@ def recommend_by_user_id(user_id: int, top_k=10, min_sim=0.01, recent_ratings_li
             
             if not rated:
                 print(f"⚠️ 用户 {user_id} 没有任何评分记录")
-                # return get_popular_movies(conn, top_k)  # 冷启动
+                return get_popular_movies(conn, top_k)  # 冷启动
                 raise ValueError("User has not rated any movies.")
             
             # 2. 对每个已评分电影，查其相似电影
@@ -92,7 +96,7 @@ def recommend_by_user_id(user_id: int, top_k=10, min_sim=0.01, recent_ratings_li
             # 4. 查电影信息
             if not top_candidates:
                 print(f"⚠️ 未找到任何推荐电影")
-                # return get_popular_movies(conn, top_k)
+                return get_popular_movies(conn, top_k)
                 raise ValueError("No recommended movies found.")
             
             movie_ids = [mid for mid, _ in top_candidates]

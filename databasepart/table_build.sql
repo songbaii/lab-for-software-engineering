@@ -67,3 +67,25 @@ CREATE TABLE IF NOT EXISTS item_similarities (
     INDEX idx_movie_id (movie_id),
     INDEX idx_similarity (similarity DESC)
 );
+
+DROP TABLE IF EXISTS movie_stats;
+CREATE TABLE movie_stats (
+    movie_id INT PRIMARY KEY,
+    avg_rating DECIMAL(3,2) NOT NULL,
+    vote_count INT NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (movie_id) REFERENCES movie(movie_id) ON DELETE CASCADE,
+    INDEX idx_vote_avg (vote_count, avg_rating)  -- ✅ 关键索引
+);
+
+-- 添加覆盖索引（关键！）
+ALTER TABLE user_judge 
+ADD INDEX idx_movie_rating (movie_id, rating), 
+ALGORITHM=INPLACE, LOCK=NONE;  -- 在线添加，不锁表
+INSERT INTO movie_stats (movie_id, avg_rating, vote_count)
+SELECT 
+    movie_id,
+    ROUND(AVG(rating), 2) AS avg_rating,
+    COUNT(*) AS vote_count
+FROM user_judge
+GROUP BY movie_id;
