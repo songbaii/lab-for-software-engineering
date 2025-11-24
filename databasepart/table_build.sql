@@ -1,4 +1,3 @@
-
 drop DATABASE soft_ware_engineering;
 create DATABASE if NOT EXISTS soft_ware_engineering;
 use soft_ware_engineering;

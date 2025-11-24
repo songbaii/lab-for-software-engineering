@@ -15,11 +15,11 @@ warnings.filterwarnings("ignore", category=UserWarning)  # ignore sparse matmul 
 # ========================
 load_dotenv()
 DB_CONFIG = {
-    'host': os.getenv('MYSQL_HOST', 'localhost'),
-    'port': int(os.getenv('MYSQL_PORT', 3306)),
-    'user': os.getenv('MYSQL_USER', 'your_username'),
-    'password': os.getenv('MYSQL_PASSWORD', 'your_password'),
-    'database': os.getenv('MYSQL_DB', 'your_db_name')
+    'host': os.getenv('MYSQL_HOST'),
+    'port': int(os.getenv('MYSQL_PORT')),
+    'user': os.getenv('MYSQL_USER'),
+    'password': os.getenv('MYSQL_PASSWORD'),
+    'database': os.getenv('MYSQL_DB')
 }
 BATCH_SIZE = 200_000  # 每批拉取 20 万条评分（根据内存调整）
 TOP_K = 100           # 每个电影保留 top 100 相似

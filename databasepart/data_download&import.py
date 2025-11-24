@@ -5,11 +5,6 @@ import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy import text
 from dotenv import load_dotenv
-import datetime
-
-# 数据库链接语句
-connection_string_set = "mysql+pymysql://violet:s131601@localhost:3306/soft_ware_engineering"
-# connection_string = "mysql+pymysql://user:passowrd@localhost:端口/数据库"
 
 def download_movielens():
     """下载数据集"""
@@ -170,7 +165,7 @@ def extract_genres_pandas(movie_data, database_url):
 
     # 插入到数据库
     engine = create_engine(database_url)
-    genres_df.to_sql('genre_table', engine, if_exists='append', index=False)
+    genres_df.to_sql('genre_table', engine, if_exists='append', index=False, method=insert_with_ignore)
 
     print("电影类型数据插入完成！")
 
@@ -227,7 +222,7 @@ def create_movie_genre_relations(movie_data, connection_string):
 
     # 插入到数据库
     try:
-        movie_genre_df.to_sql('movie_genre', engine, if_exists='append', index=False)
+        movie_genre_df.to_sql('movie_genre', engine, if_exists='append', index=False, method=insert_with_ignore)
         print("电影-类型关系数据插入完成！")
     except Exception as e:
         print(f"插入数据时出错: {e}")
@@ -251,7 +246,7 @@ def create_user_table_batch(ratings_df, tags_df, connection_string):
 
     print(f"找到{len(users_df)}个用户")
     print(users_df.head())
-    users_df.to_sql('user', engine, if_exists='append', index=False)
+    users_df.to_sql('user', engine, if_exists='append', index=False, method=insert_with_ignore)
 
     print("用户数据插入成功")
 
@@ -273,7 +268,7 @@ def insert_user_judge_pandas(df, connection_string):
     
     # 将Unix时间戳转换为datetime格式
     df_db['timestamp'] = pd.to_datetime(df_db['timestamp'], unit='s')
-
+    print(df_db.head())
     # 插入数据，如果存在重复则更新
     df_db.to_sql(
         name='user_judge',
@@ -301,7 +296,7 @@ def insert_user_comment_pandas(df, connection_string):
     
     # 将Unix时间戳转换为datetime格式
     df_db['timestamp'] = pd.to_datetime(df_db['timestamp'], unit='s')
-
+    print(df_db.head())
     # 插入数据
     df_db.to_sql(
         name='user_comment',
@@ -330,11 +325,11 @@ def data_import(ratings, movies, tags):
     load_dotenv()
     connection_string = (
         f"mysql+pymysql://"
-        f"{os.getenv('MYSQL_USER', 'violet')}:"
-        f"{os.getenv('MYSQL_PASSWORD', 's131601')}@"
-        f"{os.getenv('MYSQL_HOST', 'localhost')}:"
-        f"{os.getenv('MYSQL_PORT', '3306')}/"
-        f"{os.getenv('MYSQL_DB', 'soft_ware_engineering')}"
+        f"{os.getenv('MYSQL_USER')}:"
+        f"{os.getenv('MYSQL_PASSWORD')}@"
+        f"{os.getenv('MYSQL_HOST')}:"
+        f"{os.getenv('MYSQL_PORT')}/"
+        f"{os.getenv('MYSQL_DB')}"
     )
     print("开始插入数据到数据库")
     movie_insert(movies, connection_string)
@@ -348,8 +343,6 @@ def data_import(ratings, movies, tags):
     insert_user_judge_pandas(ratings, connection_string)
     print("开始插入测试用户评价数据")
     insert_user_comment_pandas(tags, connection_string)
-
-
 
 def main():
     download_movielens()
