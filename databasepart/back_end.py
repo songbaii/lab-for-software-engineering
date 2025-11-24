@@ -239,7 +239,7 @@ def judge():
                 'success': True,
                 'message': '成功评分！！！',
             }), 201
-    except Exception:
+    except Exception as e:
         return jsonify({'success': False, 'message': "系统错误"}), 500
 
 if __name__ == '__main__':
