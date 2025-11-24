@@ -8,11 +8,11 @@ from collections import defaultdict
 # ========================
 load_dotenv()
 DB_CONFIG = {
-    'host': os.getenv('MYSQL_HOST', 'localhost'),
-    'port': int(os.getenv('MYSQL_PORT', 3306)),
-    'user': os.getenv('MYSQL_USER', 'your_username'),
-    'password': os.getenv('MYSQL_PASSWORD', 'your_password'),
-    'database': os.getenv('MYSQL_DB', 'your_db_name')
+    'host': os.getenv('MYSQL_HOST'),
+    'port': int(os.getenv('MYSQL_PORT')),
+    'user': os.getenv('MYSQL_USER'),
+    'password': os.getenv('MYSQL_PASSWORD'),
+    'database': os.getenv('MYSQL_DB')
 }
 
 def recommend_by_user_id(user_id: int, top_k=10, min_sim=0.01, recent_ratings_limit=None):
