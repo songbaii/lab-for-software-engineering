@@ -6,3 +6,7 @@ pandas
 requests
 pytest
 dotenv
+numpy
+scipy
+scikit-learn
+tqdm

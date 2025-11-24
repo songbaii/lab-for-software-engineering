@@ -5,6 +5,11 @@ import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy import text
 from dotenv import load_dotenv
+import datetime
+
+# 数据库链接语句
+connection_string_set = "mysql+pymysql://violet:s131601@localhost:3306/soft_ware_engineering"
+# connection_string = "mysql+pymysql://user:passowrd@localhost:端口/数据库"
 
 def download_movielens():
     """下载数据集"""
@@ -66,6 +71,8 @@ def data_load(show = False):
                          engine='python',
                          names=['UserID', 'MovieID', 'Rating', 'Timestamp'],
                          encoding='utf-8')
+
+    # print(ratings['Rating'].describe())
 
     # 2. 导入电影数据 (movies.dat)
     # 格式: MovieID::Title::Genres
@@ -163,7 +170,7 @@ def extract_genres_pandas(movie_data, database_url):
 
     # 插入到数据库
     engine = create_engine(database_url)
-    genres_df.to_sql('genre_table', engine, if_exists='append', index=False, method=insert_with_ignore )
+    genres_df.to_sql('genre_table', engine, if_exists='append', index=False)
 
     print("电影类型数据插入完成！")
 
@@ -220,7 +227,7 @@ def create_movie_genre_relations(movie_data, connection_string):
 
     # 插入到数据库
     try:
-        movie_genre_df.to_sql('movie_genre', engine, if_exists='append', index=False, method=insert_with_ignore )
+        movie_genre_df.to_sql('movie_genre', engine, if_exists='append', index=False)
         print("电影-类型关系数据插入完成！")
     except Exception as e:
         print(f"插入数据时出错: {e}")
@@ -244,7 +251,7 @@ def create_user_table_batch(ratings_df, tags_df, connection_string):
 
     print(f"找到{len(users_df)}个用户")
     print(users_df.head())
-    users_df.to_sql('user', engine, if_exists='append', index=False, method=insert_with_ignore )
+    users_df.to_sql('user', engine, if_exists='append', index=False)
 
     print("用户数据插入成功")
 
@@ -261,8 +268,11 @@ def insert_user_judge_pandas(df, connection_string):
         'UserID': 'user_id',
         'MovieID': 'movie_id',
         'Rating': 'rating',
-        'Timestamp': 'unix_timestamp'
+        'Timestamp': 'timestamp'
     })
+    
+    # 将Unix时间戳转换为datetime格式
+    df_db['timestamp'] = pd.to_datetime(df_db['timestamp'], unit='s')
 
     # 插入数据，如果存在重复则更新
     df_db.to_sql(
@@ -286,8 +296,11 @@ def insert_user_comment_pandas(df, connection_string):
         'UserID': 'user_id',
         'MovieID': 'movie_id',
         'Tag': 'comment',
-        'Timestamp': 'unix_timestamp'
+        'Timestamp': 'timestamp'
     })
+    
+    # 将Unix时间戳转换为datetime格式
+    df_db['timestamp'] = pd.to_datetime(df_db['timestamp'], unit='s')
 
     # 插入数据
     df_db.to_sql(
@@ -303,20 +316,25 @@ def insert_user_comment_pandas(df, connection_string):
 def data_import(ratings, movies, tags):
     # 插入数据集到数据库
     # 先进行数据处理
+    # 注释掉删除时间戳的代码，保留时间戳字段
+    # ratings.drop('Timestamp', axis=1, inplace=True)
+    # tags.drop('Timestamp', axis=1, inplace=True)
+    
     movies["Year"] = movies['Title'].str.extract(r'(\d{4})')
     movies['Title'] = movies['Title'].str.replace(r'\s*\(\d{4}\)$', '', regex=True)
     # print(movies.head())
     # print(ratings.head())
     # print(tags.head())
+    # connection_string = "mysql+pymysql://violet:s131601@localhost:3306/soft_ware_engineering"
     # 从环境变量读取数据库连接信息
     load_dotenv()
     connection_string = (
         f"mysql+pymysql://"
-        f"{os.getenv('MYSQL_USER')}:"
-        f"{os.getenv('MYSQL_PASSWORD')}@"
-        f"{os.getenv('MYSQL_HOST')}:"
-        f"{os.getenv('MYSQL_PORT')}/"
-        f"{os.getenv('MYSQL_DB')}"
+        f"{os.getenv('MYSQL_USER', 'violet')}:"
+        f"{os.getenv('MYSQL_PASSWORD', 's131601')}@"
+        f"{os.getenv('MYSQL_HOST', 'localhost')}:"
+        f"{os.getenv('MYSQL_PORT', '3306')}/"
+        f"{os.getenv('MYSQL_DB', 'soft_ware_engineering')}"
     )
     print("开始插入数据到数据库")
     movie_insert(movies, connection_string)

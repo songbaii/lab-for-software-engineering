@@ -1,3 +1,4 @@
+
 drop DATABASE soft_ware_engineering;
 create DATABASE if NOT EXISTS soft_ware_engineering;
 use soft_ware_engineering;
@@ -22,7 +23,7 @@ CREATE TABLE if NOT exists user_judge(
     user_id int,
     movie_id int,
     rating DECIMAL(2,1),
-    unix_timestamp INT UNSIGNED,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,  # 添加时间戳字段
     Foreign Key (user_id) REFERENCES user(user_id),
     FOREIGN KEY (movie_id) REFERENCES movie(movie_id),
     PRIMARY KEY(user_id, movie_id),
@@ -47,8 +48,20 @@ create table if not exists user_comment(
     user_id int,
     movie_id int,
     comment VARCHAR(1000),
-    unix_timestamp INT UNSIGNED,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,  # 添加时间戳字段
     FOREIGN KEY (user_id) REFERENCES user(user_id),
     FOREIGN KEY (movie_id) REFERENCES movie(movie_id),
     PRIMARY KEY(user_id, movie_id)
 ); # check and done
+
+# 以下为推荐系统使用
+DROP TABLE IF EXISTS item_similarities;
+-- 创建 item_similarities 表（用于存 Top-K 相似物品）
+CREATE TABLE IF NOT EXISTS item_similarities (
+    movie_id INT NOT NULL,
+    similar_movie_id INT NOT NULL,
+    similarity DECIMAL(5,4) NOT NULL,
+    PRIMARY KEY (movie_id, similar_movie_id),
+    INDEX idx_movie_id (movie_id),
+    INDEX idx_similarity (similarity DESC)
+);
