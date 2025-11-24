@@ -22,6 +22,7 @@ CREATE TABLE if NOT exists user_judge(
     user_id int,
     movie_id int,
     rating DECIMAL(2,1),
+    unix_timestamp INT UNSIGNED,
     Foreign Key (user_id) REFERENCES user(user_id),
     FOREIGN KEY (movie_id) REFERENCES movie(movie_id),
     PRIMARY KEY(user_id, movie_id),
@@ -46,6 +47,7 @@ create table if not exists user_comment(
     user_id int,
     movie_id int,
     comment VARCHAR(1000),
+    unix_timestamp INT UNSIGNED,
     FOREIGN KEY (user_id) REFERENCES user(user_id),
     FOREIGN KEY (movie_id) REFERENCES movie(movie_id),
     PRIMARY KEY(user_id, movie_id)

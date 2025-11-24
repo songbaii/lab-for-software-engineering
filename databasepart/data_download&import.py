@@ -4,12 +4,7 @@ import os
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy import text
-from sqlalchemy.engine import connection_memoize
 from dotenv import load_dotenv
-
-# 数据库链接语句
-connection_string_set = "mysql+pymysql://violet:s131601@localhost:3306/soft_ware_engineering"
-# connection_string = "mysql+pymysql://user:passowrd@localhost:端口/数据库"
 
 def download_movielens():
     """下载数据集"""
@@ -71,8 +66,6 @@ def data_load(show = False):
                          engine='python',
                          names=['UserID', 'MovieID', 'Rating', 'Timestamp'],
                          encoding='utf-8')
-
-    # print(ratings['Rating'].describe())
 
     # 2. 导入电影数据 (movies.dat)
     # 格式: MovieID::Title::Genres
@@ -267,7 +260,8 @@ def insert_user_judge_pandas(df, connection_string):
     df_db = df.rename(columns={
         'UserID': 'user_id',
         'MovieID': 'movie_id',
-        'Rating': 'rating'
+        'Rating': 'rating',
+        'Timestamp': 'unix_timestamp'
     })
 
     # 插入数据，如果存在重复则更新
@@ -291,7 +285,8 @@ def insert_user_comment_pandas(df, connection_string):
     df_db = df.rename(columns={
         'UserID': 'user_id',
         'MovieID': 'movie_id',
-        'Tag': 'comment'
+        'Tag': 'comment',
+        'Timestamp': 'unix_timestamp'
     })
 
     # 插入数据
@@ -308,23 +303,20 @@ def insert_user_comment_pandas(df, connection_string):
 def data_import(ratings, movies, tags):
     # 插入数据集到数据库
     # 先进行数据处理
-    ratings.drop('Timestamp', axis=1, inplace=True)
-    tags.drop('Timestamp', axis=1, inplace=True)
     movies["Year"] = movies['Title'].str.extract(r'(\d{4})')
     movies['Title'] = movies['Title'].str.replace(r'\s*\(\d{4}\)$', '', regex=True)
     # print(movies.head())
     # print(ratings.head())
     # print(tags.head())
-    # connection_string = "mysql+pymysql://violet:s131601@localhost:3306/soft_ware_engineering"
     # 从环境变量读取数据库连接信息
     load_dotenv()
     connection_string = (
         f"mysql+pymysql://"
-        f"{os.getenv('MYSQL_USER', 'violet')}:"
-        f"{os.getenv('MYSQL_PASSWORD', 's131601')}@"
-        f"{os.getenv('MYSQL_HOST', 'localhost')}:"
-        f"{os.getenv('MYSQL_PORT', '3306')}/"
-        f"{os.getenv('MYSQL_DB', 'soft_ware_engineering')}"
+        f"{os.getenv('MYSQL_USER')}:"
+        f"{os.getenv('MYSQL_PASSWORD')}@"
+        f"{os.getenv('MYSQL_HOST')}:"
+        f"{os.getenv('MYSQL_PORT')}/"
+        f"{os.getenv('MYSQL_DB')}"
     )
     print("开始插入数据到数据库")
     movie_insert(movies, connection_string)

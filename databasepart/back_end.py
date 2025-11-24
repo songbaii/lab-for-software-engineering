@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from config import Config
 from models import db
+import time
 from sqlalchemy import text
 
 app = Flask(__name__)
@@ -11,9 +12,6 @@ app.config['JSON_AS_ASCII'] = False
 db.init_app(app)
 
 from models import Movie, MovieGenre, UserJudge, UserComment, User, GenreTable
-
-from sqlalchemy import text  # 确保导入text
-
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -234,7 +232,7 @@ def judge():
                 'message': "电影的评分不符合评分要求"
             }), 401
         else:
-            new_user_judge = UserJudge(user_id=user_id, movie_id=movie_id, rating=rating)
+            new_user_judge = UserJudge(user_id=user_id, movie_id=movie_id, rating=rating, unix_timestamp=int(time.time()))
             db.session.merge(new_user_judge)
             db.session.commit()
             return jsonify({

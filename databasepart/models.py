@@ -27,7 +27,7 @@ class UserJudge(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), primary_key=True)
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.movie_id'), primary_key=True)
     rating = db.Column(db.DECIMAL(2, 1))  # DECIMAL(2,1) 对应 0.0 到 5.0
-
+    unix_timestamp = db.Column(db.Integer)  # INT UNSIGNED 在 SQLAlchemy 中通常用 Integer
 
 class GenreTable(db.Model):
     __tablename__ = 'genre_table'
@@ -49,3 +49,4 @@ class UserComment(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), primary_key=True)
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.movie_id'), primary_key=True)
     comment = db.Column(db.String(1000))
+    unix_timestamp = db.Column(db.Integer)  # INT UNSIGNED 在 SQLAlchemy 中通常用 Integer
