@@ -232,7 +232,7 @@ def judge():
                 'message': "电影的评分不符合评分要求"
             }), 401
         else:
-            new_user_judge = UserJudge(user_id=user_id, movie_id=movie_id, rating=rating, unix_timestamp=int(time.time()))
+            new_user_judge = UserJudge(user_id=user_id, movie_id=movie_id, rating=rating)
             db.session.merge(new_user_judge)
             db.session.commit()
             return jsonify({
@@ -240,6 +240,7 @@ def judge():
                 'message': '成功评分！！！',
             }), 201
     except Exception as e:
+        print(f"发生错误{e}")
         return jsonify({'success': False, 'message': "系统错误"}), 500
 
 if __name__ == '__main__':
