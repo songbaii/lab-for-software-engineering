@@ -5,22 +5,10 @@ from sklearn.metrics.pairwise import cosine_similarity
 from tqdm import tqdm
 import gc
 import warnings
-import os
-from dotenv import load_dotenv
+from config import DB_CONFIG
 
 warnings.filterwarnings("ignore", category=UserWarning)  # ignore sparse matmul warning
 
-# ========================
-# 配置数据库连接
-# ========================
-load_dotenv()
-DB_CONFIG = {
-    'host': os.getenv('MYSQL_HOST'),
-    'port': int(os.getenv('MYSQL_PORT')),
-    'user': os.getenv('MYSQL_USER'),
-    'password': os.getenv('MYSQL_PASSWORD'),
-    'database': os.getenv('MYSQL_DB')
-}
 BATCH_SIZE = 200_000  # 每批拉取 20 万条评分（根据内存调整）
 TOP_K = 100           # 每个电影保留 top 100 相似
 MIN_SIM = 0.01        # 过滤极低相似度

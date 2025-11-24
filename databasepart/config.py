@@ -19,3 +19,13 @@ class Config:
             'init_command': "SET SESSION sql_mode='NO_ENGINE_SUBSTITUTION'"
         }
     }
+
+DB_CONFIG = {
+    'host': os.getenv('MYSQL_HOST', 'localhost'),
+    'port': int(os.getenv('MYSQL_PORT', 3306)),
+    'user': os.getenv('MYSQL_USER', 'your_username'),
+    'password': os.getenv('MYSQL_PASSWORD', 'your_password'),
+    'database': os.getenv('MYSQL_DB', 'your_db_name'),
+    'charset': 'utf8mb4',
+    'autocommit': True,
+}
