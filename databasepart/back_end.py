@@ -248,7 +248,7 @@ def judge():
             db.session.commit()
             return jsonify({
                 'success': True,
-                'message': f'成功评分！！！你是第{now_stats.vote_count}位评分者',
+                'message': f'成功评分！！！你是第{now_stats.vote_count}位评分者当前电影均分为{now_stats.avg_rating}',
             }), 201
     except Exception as e:
         print(f"发生错误{e}")
@@ -257,7 +257,9 @@ def judge():
 @app.route('/api/recommend', methods=['POST'])
 def recommend():
     '''
-
+    用户评分接口
+    接受的JSON格式: {"user_id": "用户账号" number类型
+    返回的JSON格式: {"success": "推荐结果" boolean类型， "message": "提示信息" string类型}
     '''
     if not request.is_json:
         return jsonify({
