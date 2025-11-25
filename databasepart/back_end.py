@@ -11,7 +11,7 @@ app.config['JSON_AS_ASCII'] = False
 # 初始化数据库
 db.init_app(app)
 
-from models import Movie, MovieGenre, UserJudge, UserComment, User, GenreTable
+from models import Movie, MovieGenre, UserJudge, UserComment, User, GenreTable, MovieStats
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -233,11 +233,25 @@ def judge():
             }), 401
         else:
             new_user_judge = UserJudge(user_id=user_id, movie_id=movie_id, rating=rating)
-            db.session.merge(new_user_judge)
+            now_user_judge = UserJudge.query.filter_by(user_id=user_id, movie_id=movie_id).first()
+            if not now_user_judge:
+                db.session.add(new_user_judge)
+                now_stats = MovieStats.query.filter_by(movie_id=movie_id).first()
+                if not now_stats:
+                    now_stats = MovieStats(movie_id=movie_id, avg_rating=rating, vote_count=1)
+                    db.session.add(now_stats)
+                else:
+                    now_stats.avg_rating = (rating + now_stats.avg_rating * now_stats.vote_count) / (now_stats.vote_count + 1)
+                    now_stats.vote_count = now_stats.vote_count + 1
+                    db.session.merge(now_stats)
+            else:
+                now_stats = MovieStats.query.filter_by(movie_id=movie_id).first()
+                now_stats.avg_rating = (now_stats.avg_rating * now_stats.vote_count - now_user_judge.rating + new_user_judge.rating ) / now_stats.vote_count
+                db.session.merge(now_stats)
             db.session.commit()
             return jsonify({
                 'success': True,
-                'message': '成功评分！！！',
+                'message': f'成功评分！！！你是第{now_stats.vote_count}位评分者',
             }), 201
     except Exception as e:
         print(f"发生错误{e}")

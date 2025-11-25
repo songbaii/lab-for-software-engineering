@@ -52,3 +52,12 @@ class UserComment(db.Model):
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.movie_id'), primary_key=True)
     comment = db.Column(db.String(1000))
     timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))  # 添加时间戳字段
+
+class MovieStats(db.Model):
+    __tablename__ = 'movie_stats'
+
+    movie_id = db.Column(db.Integer, db.ForeignKey('movie.movie_id', ondelete='CASCADE'),
+                      primary_key=True)
+    avg_rating = db.Column(db.DECIMAL(3, 2), nullable=False)
+    vote_count = db.Column(db.Integer, nullable=False)
+    updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
