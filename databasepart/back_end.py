@@ -148,7 +148,7 @@ def register():
         return jsonify({
             'success': True,
             'message': '注册成功',
-            'user': new_user.user_id
+            'user_id': new_user.user_id
         }), 201
     except Exception as e:
         print(f"发生错误: {e}")
@@ -241,13 +241,14 @@ def judge():
                     now_stats = MovieStats(movie_id=movie_id, avg_rating=rating, vote_count=1)
                     db.session.add(now_stats)
                 else:
-                    now_stats.avg_rating = (rating + now_stats.avg_rating * now_stats.vote_count) / (now_stats.vote_count + 1)
+                    now_stats.avg_rating = (rating + float(now_stats.avg_rating * now_stats.vote_count)) / (now_stats.vote_count + 1)
                     now_stats.vote_count = now_stats.vote_count + 1
                     db.session.merge(now_stats)
             else:
                 now_stats = MovieStats.query.filter_by(movie_id=movie_id).first()
-                now_stats.avg_rating = (now_stats.avg_rating * now_stats.vote_count - now_user_judge.rating + new_user_judge.rating ) / now_stats.vote_count
+                now_stats.avg_rating = (float(now_stats.avg_rating * now_stats.vote_count) - float(now_user_judge.rating) + new_user_judge.rating) / now_stats.vote_count
                 db.session.merge(now_stats)
+                db.session.merge(new_user_judge)
             db.session.commit()
             return jsonify({
                 'success': True,

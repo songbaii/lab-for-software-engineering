@@ -216,23 +216,39 @@ class TestRating:
         db.session.commit()
 
     def test_rating_add_success(self, client):
-        test_user = User(user_name='123', password='testpass')
-        db.session.add(test_user)
+        test_user_1 = User(user_name='123', password='testpass')
+        test_user_2 = User(user_name='123', password='pass')
+        db.session.add(test_user_1)
+        db.session.add(test_user_2)
         db.session.commit()
-        test_user_id = test_user.user_id
+        test_user_id_1 = test_user_1.user_id
+        test_user_id_2 = test_user_2.user_id
         test_movie = Movie(movie_name='test', release_year=1999)
         db.session.add(test_movie)
         db.session.commit()
         test_movie_id = test_movie.movie_id
-        response = client.post('/api/judge', json={'user_id': test_user_id, 'movie_id': test_movie_id, 'rating': 2})
+        response = client.post('/api/judge', json={'user_id': test_user_id_1, 'movie_id': test_movie_id, 'rating': 2})
         print(f"Response status: {response.status_code}")
         print(f"Response JSON: {response.get_json()}")
         assert response.status_code == 201
         assert response.get_json()['success'] == True
-        test_rating = UserJudge.query.filter_by(user_id=test_user_id, movie_id=test_movie_id).first()
-        db.session.delete(test_rating)
+        response = client.post('/api/judge', json={'user_id': test_user_id_2, 'movie_id': test_movie_id, 'rating': 3})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 201
+        assert response.get_json()['success'] == True
+        response = client.post('/api/judge', json = {'user_id': test_user_id_1, 'movie_id': test_movie_id, 'rating': 4})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 201
+        assert response.get_json()['success'] == True
+        test_rating_1 = UserJudge.query.filter_by(user_id=test_user_id_1, movie_id=test_movie_id).first()
+        test_rating_2 = UserJudge.query.filter_by(user_id=test_user_id_2, movie_id=test_movie_id).first()
+        db.session.delete(test_rating_1)
+        db.session.delete(test_rating_2)
         db.session.commit()
-        db.session.delete(test_user)
+        db.session.delete(test_user_1)
+        db.session.delete(test_user_2)
         db.session.delete(test_movie)
         db.session.commit()
 
