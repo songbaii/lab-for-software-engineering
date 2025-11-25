@@ -3,6 +3,7 @@ from config import Config
 from models import db
 import time
 from sqlalchemy import text
+from recommend import recommend_by_user_id
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -256,16 +257,57 @@ def judge():
 
 @app.route('/api/recommend', methods=['POST'])
 def recommend():
-    '''
+    """
     用户评分接口
     接受的JSON格式: {"user_id": "用户账号" number类型
-    返回的JSON格式: {"success": "推荐结果" boolean类型， "message": "提示信息" string类型}
-    '''
+    返回的JSON格式: {"success": "推荐结果" boolean类型， "message": "提示信息" string类型, "data": "推荐电影信息" 以数组的形式进行传输，每一个都具有"movie_id", "movie_name", "release_year", "avg_rating", "vote_count"属性}
+    """
     if not request.is_json:
         return jsonify({
             'success': False,
-            'message': "评分数据格式错误"
+            'message': "请求电影推荐数据格式错误"
         }), 400
+
+    data = request.get_json()
+
+    # 对应根本不存在这个属性的情况
+    if not isinstance(data, dict) or 'user_id' not in data:
+        return jsonify({
+            'success': False,
+            'message': "请求电影推荐属性缺失"
+        }), 400
+
+    user_id = str(data.get('user_id')).strip()
+
+    if not user_id :
+        return jsonify({
+            'success': False,
+            'message': '用户id不能为空',
+        }), 400
+
+    try:
+        user_id = int(user_id)
+    except Exception:
+        return jsonify({
+            'success': False,
+            'message': "用户id输入存在问题"
+        }), 400
+
+    user = User.query.filter_by(user_id=user_id).first()
+
+    if not user:
+        return jsonify({
+            'success': False,
+            'message': "不存在该用户"
+        }), 401
+
+    recommend_movies = recommend_by_user_id(user_id)
+
+    return jsonify({
+        'success': True,
+        'message': "成功推荐电影!!!",
+        'recommend_movies': recommend_movies
+    }), 200
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

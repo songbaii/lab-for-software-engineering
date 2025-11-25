@@ -1,3 +1,5 @@
+from urllib import response
+
 import pytest
 from back_end import app, db
 from models import User, Movie, UserJudge
@@ -252,6 +254,26 @@ class TestRating:
         db.session.delete(test_movie)
         db.session.commit()
 
+class TestRecommend:
 
+    def test_cold_success_recommend(self, client):
+        test_user = User(user_name='123', password='<PASSWORD>')
+        db.session.add(test_user)
+        db.session.commit()
+        response = client.post('/api/recommend', json={'user_id': test_user.user_id})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 200
+        assert response.get_json()['success'] == True
+        db.session.delete(test_user)
+        db.session.commit()
+
+    def test_success_recommend(self, client):
+        test_user = UserJudge.query.first()
+        response = client.post('/api/recommend', json={'user_id': test_user.user_id})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 200
+        assert response.get_json()['success'] == True
 
 
