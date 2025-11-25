@@ -258,7 +258,7 @@ def judge():
 @app.route('/api/recommend', methods=['POST'])
 def recommend():
     """
-    用户评分接口
+    推荐接口
     接受的JSON格式: {"user_id": "用户账号" number类型
     返回的JSON格式: {"success": "推荐结果" boolean类型， "message": "提示信息" string类型, "data": "推荐电影信息" 以数组的形式进行传输，每一个都具有"movie_id", "movie_name", "release_year", "avg_rating", "vote_count"属性}
     """
