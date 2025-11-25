@@ -233,22 +233,18 @@ def judge():
             }), 401
         else:
             new_user_judge = UserJudge(user_id=user_id, movie_id=movie_id, rating=rating)
-            now_user_judge = UserJudge.query.filter_by(user_id=user_id, movie_id=movie_id).first()
-            if not now_user_judge:
-                db.session.add(new_user_judge)
-                now_stats = MovieStats.query.filter_by(movie_id=movie_id).first()
-                if not now_stats:
-                    now_stats = MovieStats(movie_id=movie_id, avg_rating=rating, vote_count=1)
-                    db.session.add(now_stats)
-                else:
-                    now_stats.avg_rating = (rating + float(now_stats.avg_rating * now_stats.vote_count)) / (now_stats.vote_count + 1)
-                    now_stats.vote_count = now_stats.vote_count + 1
-                    db.session.merge(now_stats)
+            db.session.merge(new_user_judge)
+            db.session.commit()
+            now_movie_judge = UserJudge.query.filter_by(movie_id=movie_id).all()
+            ratings = [float(judge.rating) for judge in now_movie_judge]  # 转换为float
+            avg_rating = sum(ratings) / len(ratings)
+            now_stats = MovieStats.query.filter_by(movie_id=movie_id).first()
+            if not now_stats:
+                now_stats = MovieStats(movie_id=movie_id, avg_rating=avg_rating, vote_count=1)
             else:
-                now_stats = MovieStats.query.filter_by(movie_id=movie_id).first()
-                now_stats.avg_rating = (float(now_stats.avg_rating * now_stats.vote_count) - float(now_user_judge.rating) + new_user_judge.rating) / now_stats.vote_count
-                db.session.merge(now_stats)
-                db.session.merge(new_user_judge)
+                now_stats.avg_rating = avg_rating
+                now_stats.vote_count = len(now_movie_judge)
+            db.session.merge(now_stats)
             db.session.commit()
             return jsonify({
                 'success': True,
