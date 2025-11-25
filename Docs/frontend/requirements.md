@@ -27,6 +27,7 @@
 {
     "movies":[
         {
+            "movie_id":"",
             "movie_name":"",
             "movie_type":"",
             "movie_content":""
