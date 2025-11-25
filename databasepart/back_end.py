@@ -258,5 +258,16 @@ def judge():
         print(f"发生错误{e}")
         return jsonify({'success': False, 'message': "系统错误"}), 500
 
+@app.route('/api/recommend', methods=['POST'])
+def recommend():
+    '''
+
+    '''
+    if not request.is_json:
+        return jsonify({
+            'success': False,
+            'message': "评分数据格式错误"
+        }), 400
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
