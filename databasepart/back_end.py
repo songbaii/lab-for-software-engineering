@@ -301,7 +301,7 @@ def recommend():
             'message': "不存在该用户"
         }), 401
 
-    recommend_movies = recommend_by_user_id(user_id)
+    recommend_movies = recommend_by_user_id(user_id, top_k=20, min_sim=0.01, recent_ratings_limit=20, random_factor=0.3)
 
     return jsonify({
         'success': True,

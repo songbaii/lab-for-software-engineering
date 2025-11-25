@@ -77,3 +77,15 @@ CREATE TABLE movie_stats (
     FOREIGN KEY (movie_id) REFERENCES movie(movie_id) ON DELETE CASCADE,
     INDEX idx_vote_avg (vote_count, avg_rating)  -- ✅ 关键索引
 );
+
+DROP TABLE if EXISTS user_favorite_genres;
+# 添加用户喜好类型表
+CREATE TABLE IF NOT EXISTS user_favorite_genres (
+    user_id INT NOT NULL,
+    genre_id SMALLINT NOT NULL,
+    preference_score DECIMAL(3,2) DEFAULT 1.0,
+    FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (genre_id) REFERENCES genre_table(genre_id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, genre_id),
+    INDEX idx_user_genre (user_id, genre_id)
+);
