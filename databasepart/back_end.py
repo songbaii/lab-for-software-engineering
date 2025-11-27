@@ -317,13 +317,15 @@ def recommend():
         }), 401
 
     recommend_movies = recommend_by_user_id(user_id, top_k=20, min_sim=0.01, recent_ratings_limit=20, random_factor=0.3)
-
-
+    recommend_movies = recommend_movies[record_times * 4: (record_times + 1) * 4]
+    for recommend_movie in recommend_movies:
+        del recommend_movie['score']
+        recommend_movie['short_commnet'] = generate_movie_review_interface({'movie_title' :recommend_movie['movie_name']})
 
     return jsonify({
         'success': True,
         'message': "成功推荐电影!!!",
-        'recommend_movies': recommend_movies[record_times * 4: (record_times + 1) * 4]
+        'recommend_movies': recommend_movies
     }), 200
 
 if __name__ == '__main__':
