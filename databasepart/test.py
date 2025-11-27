@@ -1,4 +1,8 @@
-from urllib import response
+import os, sys
+
+current_file = os.path.abspath(__file__)
+project_root = os.path.dirname(os.path.dirname(current_file))
+sys.path.insert(0, project_root)
 
 import pytest
 from back_end import app, db
@@ -257,10 +261,10 @@ class TestRating:
 class TestRecommend:
 
     def test_cold_success_recommend(self, client):
-        test_user = User(user_name='123', password='<PASSWORD>')
+        test_user = User(user_name='123', password='123')
         db.session.add(test_user)
         db.session.commit()
-        response = client.post('/api/recommend', json={'user_id': test_user.user_id})
+        response = client.post('/api/recommend', json={'user_id': test_user.user_id, 'record_times': 1})
         print(f"Response status: {response.status_code}")
         print(f"Response JSON: {response.get_json()}")
         assert response.status_code == 200
@@ -270,10 +274,8 @@ class TestRecommend:
 
     def test_success_recommend(self, client):
         test_user = UserJudge.query.first()
-        response = client.post('/api/recommend', json={'user_id': test_user.user_id})
+        response = client.post('/api/recommend', json={'user_id': test_user.user_id, 'record_times': 0})
         print(f"Response status: {response.status_code}")
         print(f"Response JSON: {response.get_json()}")
         assert response.status_code == 200
         assert response.get_json()['success'] == True
-
-

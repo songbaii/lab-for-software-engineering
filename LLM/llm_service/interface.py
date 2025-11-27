@@ -1,5 +1,5 @@
-from llm_client import llm_client
-from prompts import generate_movie_review_prompt, generate_movie_summary_prompt
+from LLM.llm_service.llm_client import llm_client
+from LLM.llm_service.prompts import generate_movie_review_prompt, generate_movie_summary_prompt
 import json
 
 def generate_movie_review_interface(movie_data):
@@ -86,3 +86,9 @@ def generate_movie_review_interface(movie_data):
                 "message": f"内部错误: {str(e)}"
             }
         }
+
+if __name__ == '__main__':
+    #app.run(debug=True, host='0.0.0.0', port=5000)
+    import sys
+    for path in sys.path:
+        print(path)

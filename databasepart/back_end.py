@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify
 from config import Config
 from models import db
-import time
 from sqlalchemy import text
 from recommend import recommend_by_user_id
+from LLM.llm_service.interface import generate_movie_review_interface
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -259,8 +259,8 @@ def judge():
 def recommend():
     """
     推荐接口
-    接受的JSON格式: {"user_id": "用户账号" number类型
-    返回的JSON格式: {"success": "推荐结果" boolean类型， "message": "提示信息" string类型, "data": "推荐电影信息" 以数组的形式进行传输，每一个都具有"movie_id", "movie_name", "release_year", "avg_rating", "vote_count"属性}
+    接受的JSON格式: {"user_id": "用户账号" number类型, "record_times": "先前已经推荐过的次数(第一次为0)" number类型}
+    返回的JSON格式: {"success": "推荐结果" boolean类型， "message": "提示信息" string类型, "data": "推荐电影信息" 以数组的形式进行传输，每一个都具有"movie_id", "movie_name", "release_year", "avg_rating", "vote_count"属性, }
     """
     if not request.is_json:
         return jsonify({
@@ -271,13 +271,14 @@ def recommend():
     data = request.get_json()
 
     # 对应根本不存在这个属性的情况
-    if not isinstance(data, dict) or 'user_id' not in data:
+    if not isinstance(data, dict) or 'user_id' not in data or 'record_times' not in data:
         return jsonify({
             'success': False,
             'message': "请求电影推荐属性缺失"
         }), 400
 
     user_id = str(data.get('user_id')).strip()
+    record_times = str(data.get('record_times')).strip()
 
     if not user_id :
         return jsonify({
@@ -285,8 +286,22 @@ def recommend():
             'message': '用户id不能为空',
         }), 400
 
+    if not record_times:
+        return jsonify({
+            'success': False,
+            'message': '用户刷新次数不能为空'
+        })
+
     try:
         user_id = int(user_id)
+    except Exception:
+        return jsonify({
+            'success': False,
+            'message': "用户id输入存在问题"
+        }), 400
+
+    try:
+        record_times = int(record_times)
     except Exception:
         return jsonify({
             'success': False,
@@ -303,10 +318,12 @@ def recommend():
 
     recommend_movies = recommend_by_user_id(user_id, top_k=20, min_sim=0.01, recent_ratings_limit=20, random_factor=0.3)
 
+
+
     return jsonify({
         'success': True,
         'message': "成功推荐电影!!!",
-        'recommend_movies': recommend_movies
+        'recommend_movies': recommend_movies[record_times * 4: (record_times + 1) * 4]
     }), 200
 
 if __name__ == '__main__':
