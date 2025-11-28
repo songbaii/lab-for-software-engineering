@@ -178,6 +178,25 @@ const validateForm = () => {
 };
 
 /**
+ * 存储用户信息到浏览器存储
+ * @param {number} userId - 用户ID
+ * @param {boolean} remember - 是否记住登录状态
+ */
+const storeUserInfo = (userId, remember) => {
+  const userInfo = { user_id: userId };
+  
+  // 总是存储到sessionStorage（会话级别）
+  sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
+  
+  // 如果选择了"记住我"，则额外存储到localStorage（持久化）
+  if (remember) {
+    localStorage.setItem('userInfo', JSON.stringify(userInfo));
+  } else {
+    // 如果没有选择记住我，清除localStorage中的用户信息
+    localStorage.removeItem('userInfo');
+  }
+};
+/**
  * 登录处理函数（框架）
  */
 const handleLogin = async () => {
@@ -202,16 +221,11 @@ const handleLogin = async () => {
     
     if (result.success) {
       // 登录成功处理
-      if (form.value.remember) {
-        localStorage.setItem('userInfo', JSON.stringify({ user_id: form.value.user_id }));
-      } else {
-        sessionStorage.setItem('userInfo', JSON.stringify({ user_id: form.value.user_id }));
-      }
-      
+      storeUserInfo(form.value.user_id, form.value.remember);
       // 跳转到首页
       console.log('登录成功，跳转到首页');
       // 实际项目中取消注释下面的路由跳转
-      // router.push('/');
+      router.push('/');
       } else {
       // 登录失败处理
       console.error('登录失败');

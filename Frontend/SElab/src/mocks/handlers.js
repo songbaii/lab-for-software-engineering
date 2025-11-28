@@ -68,4 +68,142 @@ export const handlers = [
             })
         }
     }),
+    // 推荐电影接口 handler
+    // POST /api/recommend
+    // 请求体: { user_id: number }
+    // 响应: { success: boolean, message?: string, movies?: array }
+    http.post('/api/recommend', async ({ request }) => {
+        console.log('Mocked recommend request received')
+        const { user_id } = await request.json()
+        
+        // 验证用户ID
+        if (typeof user_id !== 'number') {
+            return HttpResponse.json({ 
+                success: false, 
+                message: '用户ID必须是数字类型',
+                movies: []
+            })
+        }
+
+        // 模拟推荐电影数据
+        const mockMovies = [
+            {
+                movie_id: 1,
+                movie_name: "肖申克的救赎",
+                release_year: 1994,
+                avg_rating: 9.3,
+                vote_count: 2500000,
+                movie_type: "剧情"
+            },
+            {
+                movie_id: 2,
+                movie_name: "教父",
+                release_year: 1972,
+                avg_rating: 9.2,
+                vote_count: 1800000,
+                movie_type: "犯罪"
+            },
+            {
+                movie_id: 3,
+                movie_name: "黑暗骑士",
+                release_year: 2008,
+                avg_rating: 9.0,
+                vote_count: 2600000,
+                movie_type: "动作"
+            },
+            {
+                movie_id: 4,
+                movie_name: "阿甘正传",
+                release_year: 1994,
+                avg_rating: 8.8,
+                vote_count: 2000000,
+                movie_type: "剧情"
+            },
+            {
+                movie_id: 5,
+                movie_name: "指环王：王者归来",
+                release_year: 2003,
+                avg_rating: 8.9,
+                vote_count: 1800000,
+                movie_type: "奇幻"
+            },
+            {
+                movie_id: 6,
+                movie_name: "泰坦尼克号",
+                release_year: 1997,
+                avg_rating: 7.9,
+                vote_count: 1200000,
+                movie_type: "爱情"
+            },
+            {
+                movie_id: 7,
+                movie_name: "盗梦空间",
+                release_year: 2010,
+                avg_rating: 8.8,
+                vote_count: 2200000,
+                movie_type: "科幻"
+            },
+            {
+                movie_id: 8,
+                movie_name: "星际穿越",
+                release_year: 2014,
+                avg_rating: 8.6,
+                vote_count: 1700000,
+                movie_type: "科幻"
+            }
+        ]
+
+        // 生成随机数量（0-8）
+        const randomCount = Math.floor(Math.random() * 9) // 0-8的随机整数
+        
+        // 随机选择电影
+        const shuffledMovies = [...mockMovies].sort(() => 0.5 - Math.random())
+        const selectedMovies = shuffledMovies.slice(0, randomCount)
+
+        console.log(`Returning ${selectedMovies.length} recommended movies for user ${user_id}`)
+        
+        return HttpResponse.json({
+            success: true,
+            message: '获取推荐成功',
+            movies: selectedMovies
+        })
+    }),
+    // 评分接口 handler
+    // POST /api/judge
+    // 请求体: { user_id: number, movie_id: number, rating: number }
+    // 响应: { success: boolean, message?: string }
+    http.post('/api/judge', async ({ request }) => {
+        console.log('Mocked judge request received')
+        const { user_id, movie_id, rating } = await request.json()
+        
+        // 验证参数
+        if (typeof user_id !== 'number') {
+            return HttpResponse.json({ 
+                success: false, 
+                message: '用户ID必须是数字类型' 
+            })
+        }
+        
+        if (typeof movie_id !== 'number') {
+            return HttpResponse.json({ 
+                success: false, 
+                message: '电影ID必须是数字类型' 
+            })
+        }
+        
+        if (typeof rating !== 'number' || rating < 0.5 || rating > 10) {
+            return HttpResponse.json({ 
+                success: false, 
+                message: '评分必须是0.5到10之间的数字' 
+            })
+        }
+
+        console.log(`User ${user_id} rated movie ${movie_id} with ${rating} stars`)
+        
+        // 模拟评分成功
+        return HttpResponse.json({
+            success: true,
+            message: '评分成功'
+        })
+    }),
 ]
