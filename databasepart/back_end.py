@@ -260,7 +260,7 @@ def recommend():
     """
     推荐接口
     接受的JSON格式: {"user_id": "用户账号" number类型, "record_times": "先前已经推荐过的次数(第一次为0)" number类型}
-    返回的JSON格式: {"success": "推荐结果" boolean类型， "message": "提示信息" string类型, "data": "推荐电影信息" 以数组的形式进行传输，每一个都具有"movie_id", "movie_name", "release_year", "avg_rating", "vote_count"属性, }
+    返回的JSON格式: {"success": "推荐结果" boolean类型， "message": "提示信息" string类型, "recommend_movies": "推荐电影信息" 以数组的形式进行传输，每一个都具有"movie_id", "movie_name", "release_year", "avg_rating", "vote_count", "short_comment"属性}
     """
     if not request.is_json:
         return jsonify({
@@ -317,10 +317,11 @@ def recommend():
         }), 401
 
     recommend_movies = recommend_by_user_id(user_id, top_k=20, min_sim=0.01, recent_ratings_limit=20, random_factor=0.3)
-    recommend_movies = recommend_movies[record_times * 4: (record_times + 1) * 4]
+
+    recommend_movies = recommend_movies[(record_times * 4) % 20: (record_times + 1) * 4 % 20]
     for recommend_movie in recommend_movies:
         del recommend_movie['score']
-        recommend_movie['short_commnet'] = generate_movie_review_interface({'movie_title' :recommend_movie['movie_name']})
+        recommend_movie['short_comment'] = generate_movie_review_interface({'movie_title' :recommend_movie['movie_name']})['data']['generated_review']
 
     return jsonify({
         'success': True,
