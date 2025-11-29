@@ -93,7 +93,7 @@ export const handlers = [
                 release_year: 1994,
                 avg_rating: 9.3,
                 vote_count: 2500000,
-                movie_type: "剧情"
+                short_comment: "希望让人自由，这是一部关于友谊和救赎的经典之作。"
             },
             {
                 movie_id: 2,
@@ -101,7 +101,7 @@ export const handlers = [
                 release_year: 1972,
                 avg_rating: 9.2,
                 vote_count: 1800000,
-                movie_type: "犯罪"
+                short_comment: "黑帮电影的巅峰之作，马龙·白兰度的表演堪称传奇。"
             },
             {
                 movie_id: 3,
@@ -109,7 +109,7 @@ export const handlers = [
                 release_year: 2008,
                 avg_rating: 9.0,
                 vote_count: 2600000,
-                movie_type: "动作"
+                short_comment: "希斯·莱杰的小丑表演让这部超级英雄电影成为艺术。"
             },
             {
                 movie_id: 4,
@@ -117,7 +117,7 @@ export const handlers = [
                 release_year: 1994,
                 avg_rating: 8.8,
                 vote_count: 2000000,
-                movie_type: "剧情"
+                short_comment: "生活就像一盒巧克力，你永远不知道下一颗是什么味道。"
             },
             {
                 movie_id: 5,
@@ -125,7 +125,7 @@ export const handlers = [
                 release_year: 2003,
                 avg_rating: 8.9,
                 vote_count: 1800000,
-                movie_type: "奇幻"
+                short_comment: "史诗奇幻的终极篇章，中土世界的完美收官。"
             },
             {
                 movie_id: 6,
@@ -133,7 +133,7 @@ export const handlers = [
                 release_year: 1997,
                 avg_rating: 7.9,
                 vote_count: 1200000,
-                movie_type: "爱情"
+                short_comment: "跨越阶级的爱情故事，永恒的经典浪漫。"
             },
             {
                 movie_id: 7,
@@ -141,7 +141,7 @@ export const handlers = [
                 release_year: 2010,
                 avg_rating: 8.8,
                 vote_count: 2200000,
-                movie_type: "科幻"
+                short_comment: "诺兰的梦境迷宫，颠覆想象的科幻巨作。"
             },
             {
                 movie_id: 8,
@@ -149,7 +149,39 @@ export const handlers = [
                 release_year: 2014,
                 avg_rating: 8.6,
                 vote_count: 1700000,
-                movie_type: "科幻"
+                short_comment: "爱与物理的完美结合，震撼的宇宙探索之旅。"
+            },
+            {
+                movie_id: 9,
+                movie_name: "霸王别姬",
+                release_year: 1993,
+                avg_rating: 9.0,
+                vote_count: 1500000,
+                short_comment: "戏如人生，人生如戏，中国电影的巅峰之作。"
+            },
+            {
+                movie_id: 10,
+                movie_name: "这个杀手不太冷",
+                release_year: 1994,
+                avg_rating: 9.0,
+                vote_count: 1900000,
+                short_comment: "大叔与萝莉的温情故事，让·雷诺的经典角色。"
+            },
+            {
+                movie_id: 11,
+                movie_name: "辛德勒的名单",
+                release_year: 1993,
+                avg_rating: 9.0,
+                vote_count: 1300000,
+                short_comment: "黑白影像中的历史伤痛，人性的光辉与黑暗。"
+            },
+            {
+                movie_id: 12,
+                movie_name: "千与千寻",
+                release_year: 2001,
+                avg_rating: 9.0,
+                vote_count: 1600000,
+                short_comment: "宫崎骏的奇幻世界，成长与勇气的美丽寓言。"
             }
         ]
 

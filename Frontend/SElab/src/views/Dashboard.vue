@@ -109,6 +109,10 @@
           <span class="movie-type-badge">{{ selectedMovie.movie_type }}</span>
         </div>
         <div class="modal-body">
+          <div class="movie-short-comment" v-if="selectedMovie.short_comment">
+            <h3>电影简介</h3>
+            <p>{{ selectedMovie.short_comment }}</p>
+          </div>
           <div class="movie-stats">
             <div class="stat-item">
               <span class="stat-label">上映年份:</span>
@@ -168,6 +172,11 @@ const movies = ref([]);
 const selectedMovie = ref(null);
 const userRatings = ref({});
 
+// 新增：推荐次数记录
+const recordTimes = ref(0);
+// 新增：标记是否有评分操作
+const hasRated = ref(false);
+
 // 评分选项 (0.5-10分，粒度为0.5)
 const ratingOptions = computed(() => {
   const options = [];
@@ -210,7 +219,8 @@ const fetchMovies = async () => {
     
     // 发送请求获取推荐电影
     const response = await apiService.post('/api/recommend', {
-      user_id: Number(userInfo.value.user_id)
+      user_id: Number(userInfo.value.user_id),
+      record_times: recordTimes.value
     });
     
     // 解析响应
@@ -220,6 +230,12 @@ const fetchMovies = async () => {
       movies.value = result.movies || [];
       if (movies.value.length === 0) {
         fetchError.value = '暂无推荐电影';
+      }
+      if (hasRated.value) {
+        recordTimes.value = 0;
+        hasRated.value = false; // 重置标记
+      } else {
+        recordTimes.value += 1;
       }
     } else {
       fetchError.value = result.message || '获取推荐失败';
@@ -269,8 +285,9 @@ const handleRatingSelect = async (movie, event) => {
     
     if (response.success) {
       console.log('评分成功');
+      hasRated.value = true; // 标记已进行评分操作
       // 刷新电影列表以更新平均评分
-      await fetchMovies();
+      // await fetchMovies();
     } else {
       console.error('评分失败:', response.message);
       delete userRatings.value[movie.movie_id];
