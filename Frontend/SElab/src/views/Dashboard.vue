@@ -70,26 +70,8 @@
             <h3 class="movie-title">{{ movie.movie_name }}</h3>
             <div class="movie-meta">
               <span class="movie-year">年份: {{ movie.release_year }}</span>
-              <span class="movie-rating-info">评分: {{ movie.avg_rating }}/10 ({{ movie.vote_count }}票)</span>
+              <span class="movie-rating-info">评分: {{ movie.avg_rating }}/5 ({{ movie.vote_count }}票)</span>
             </div>
-          </div>
-          <div class="movie-rating">
-            <div class="rating-controls">
-              <span class="rating-label">您的评分:</span>
-              <select 
-                class="rating-select"
-                :value="userRatings[movie.movie_id] || ''"
-                @change="handleRatingSelect(movie, $event)"
-              >
-                <option value="">请选择</option>
-                <option v-for="rating in ratingOptions" :key="rating" :value="rating">
-                  {{ rating }}
-                </option>
-              </select>
-            </div>
-            <span class="rating-text">
-              {{ userRatings[movie.movie_id] ? `已评分: ${userRatings[movie.movie_id]}/10` : '点击选择评分' }}
-            </span>
           </div>
         </div>
       </div>
@@ -120,7 +102,7 @@
             </div>
             <div class="stat-item">
               <span class="stat-label">平均评分:</span>
-              <span class="stat-value">{{ selectedMovie.avg_rating }}/10</span>
+              <span class="stat-value">{{ selectedMovie.avg_rating }}/5</span>
             </div>
             <div class="stat-item">
               <span class="stat-label">投票数:</span>
@@ -136,14 +118,14 @@
                 :value="userRatings[selectedMovie.movie_id] || ''"
                 @change="handleRatingSelect(selectedMovie, $event)"
               >
-                <option value="">请选择</option>
+                <option value="" disabled>请选择</option>
                 <option v-for="rating in ratingOptions" :key="rating" :value="rating">
                   {{ rating }}
                 </option>
               </select>
             </div>
             <span class="rating-text">
-              {{ userRatings[selectedMovie.movie_id] ? `已评分: ${userRatings[selectedMovie.movie_id]}/10` : '点击选择评分' }}
+              {{ userRatings[selectedMovie.movie_id] ? `已评分: ${userRatings[selectedMovie.movie_id]}/5` : '点击选择评分' }}
             </span>
         </div>
       </div>
@@ -177,11 +159,11 @@ const recordTimes = ref(0);
 // 新增：标记是否有评分操作
 const hasRated = ref(false);
 
-// 评分选项 (0.5-10分，粒度为0.5)
+// 评分选项 (0.5-5分，粒度为0.5)
 const ratingOptions = computed(() => {
   const options = [];
-  for (let i = 0.5; i <= 10; i += 0.5) {
-    options.push(i);
+  for (let i = 0.5; i <= 5; i += 0.5) {
+    options.push(i.toFixed(1));
   }
   return options;
 });
@@ -268,7 +250,7 @@ const showMovieDetails = (movie) => {
  * 对电影进行评分
  */
 const handleRatingSelect = async (movie, event) => {
-  const rating = parseFloat(event.target.value);
+  const rating = event.target.value;
   
   if (!rating) return;
   
@@ -280,7 +262,7 @@ const handleRatingSelect = async (movie, event) => {
     const response = await apiService.post('/api/judge', {
       user_id: Number(userInfo.value.user_id),
       movie_id: Number(movie.movie_id),
-      rating: rating
+      rating: parseFloat(rating)
     });
     
     if (response.success) {
@@ -728,6 +710,16 @@ onMounted(() => {
   margin-bottom: 12px;
 }
 
+.movie-card::after {
+  content: "点击查看详情和评分";
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  color: #94a3b8;
+  padding: 10px 20px 20px;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 16px;
+}
 .movie-year, .movie-rating-info {
   font-size: 14px;
   color: #64748b;

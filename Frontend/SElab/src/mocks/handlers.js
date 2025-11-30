@@ -91,7 +91,7 @@ export const handlers = [
                 movie_id: 1,
                 movie_name: "肖申克的救赎",
                 release_year: 1994,
-                avg_rating: 9.3,
+                avg_rating: 4.3,
                 vote_count: 2500000,
                 short_comment: "希望让人自由，这是一部关于友谊和救赎的经典之作。"
             },
@@ -99,7 +99,7 @@ export const handlers = [
                 movie_id: 2,
                 movie_name: "教父",
                 release_year: 1972,
-                avg_rating: 9.2,
+                avg_rating: 4.2,
                 vote_count: 1800000,
                 short_comment: "黑帮电影的巅峰之作，马龙·白兰度的表演堪称传奇。"
             },
@@ -107,7 +107,7 @@ export const handlers = [
                 movie_id: 3,
                 movie_name: "黑暗骑士",
                 release_year: 2008,
-                avg_rating: 9.0,
+                avg_rating: 4.0,
                 vote_count: 2600000,
                 short_comment: "希斯·莱杰的小丑表演让这部超级英雄电影成为艺术。"
             },
@@ -115,7 +115,7 @@ export const handlers = [
                 movie_id: 4,
                 movie_name: "阿甘正传",
                 release_year: 1994,
-                avg_rating: 8.8,
+                avg_rating: 3.8,
                 vote_count: 2000000,
                 short_comment: "生活就像一盒巧克力，你永远不知道下一颗是什么味道。"
             },
@@ -123,7 +123,7 @@ export const handlers = [
                 movie_id: 5,
                 movie_name: "指环王：王者归来",
                 release_year: 2003,
-                avg_rating: 8.9,
+                avg_rating: 3.9,
                 vote_count: 1800000,
                 short_comment: "史诗奇幻的终极篇章，中土世界的完美收官。"
             },
@@ -131,7 +131,7 @@ export const handlers = [
                 movie_id: 6,
                 movie_name: "泰坦尼克号",
                 release_year: 1997,
-                avg_rating: 7.9,
+                avg_rating: 2.9,
                 vote_count: 1200000,
                 short_comment: "跨越阶级的爱情故事，永恒的经典浪漫。"
             },
@@ -139,7 +139,7 @@ export const handlers = [
                 movie_id: 7,
                 movie_name: "盗梦空间",
                 release_year: 2010,
-                avg_rating: 8.8,
+                avg_rating: 3.8,
                 vote_count: 2200000,
                 short_comment: "诺兰的梦境迷宫，颠覆想象的科幻巨作。"
             },
@@ -147,7 +147,7 @@ export const handlers = [
                 movie_id: 8,
                 movie_name: "星际穿越",
                 release_year: 2014,
-                avg_rating: 8.6,
+                avg_rating: 3.6,
                 vote_count: 1700000,
                 short_comment: "爱与物理的完美结合，震撼的宇宙探索之旅。"
             },
@@ -155,7 +155,7 @@ export const handlers = [
                 movie_id: 9,
                 movie_name: "霸王别姬",
                 release_year: 1993,
-                avg_rating: 9.0,
+                avg_rating: 4.0,
                 vote_count: 1500000,
                 short_comment: "戏如人生，人生如戏，中国电影的巅峰之作。"
             },
@@ -163,7 +163,7 @@ export const handlers = [
                 movie_id: 10,
                 movie_name: "这个杀手不太冷",
                 release_year: 1994,
-                avg_rating: 9.0,
+                avg_rating: 4.0,
                 vote_count: 1900000,
                 short_comment: "大叔与萝莉的温情故事，让·雷诺的经典角色。"
             },
@@ -171,7 +171,7 @@ export const handlers = [
                 movie_id: 11,
                 movie_name: "辛德勒的名单",
                 release_year: 1993,
-                avg_rating: 9.0,
+                avg_rating: 4.0,
                 vote_count: 1300000,
                 short_comment: "黑白影像中的历史伤痛，人性的光辉与黑暗。"
             },
@@ -179,7 +179,7 @@ export const handlers = [
                 movie_id: 12,
                 movie_name: "千与千寻",
                 release_year: 2001,
-                avg_rating: 9.0,
+                avg_rating: 4.0,
                 vote_count: 1600000,
                 short_comment: "宫崎骏的奇幻世界，成长与勇气的美丽寓言。"
             }
