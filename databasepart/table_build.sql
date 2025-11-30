@@ -75,7 +75,7 @@ CREATE TABLE movie_stats (
     vote_count INT NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (movie_id) REFERENCES movie(movie_id) ON DELETE CASCADE,
-    INDEX idx_vote_avg (vote_count, avg_rating)  -- ✅ 关键索引
+    INDEX idx_vote_avg (vote_count, avg_rating)
 );
 
 DROP TABLE if EXISTS user_favorite_genres;
