@@ -250,19 +250,24 @@ const handleLogin = async () => {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: white;
+  width: 100%;
+  max-width: none; /* 移除最大宽度限制 */
   padding: 20px;
 }
 
 /* 登录卡片 */
 .login-card {
   width: 100%;
+  /* 限制最大宽度以便在大屏幕上居中显示卡片并保持适当宽度 */
   max-width: 420px;
+  margin: 0 auto;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
   padding: 40px 30px;
   backdrop-filter: blur(4px);
+  box-sizing: border-box; /* 确保 padding 不会导致超出 max-width */
 }
 
 /* 登录头部 */

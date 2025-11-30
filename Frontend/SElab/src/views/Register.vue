@@ -284,6 +284,8 @@ const handleRegister = async () => {
   justify-content: center;
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: 100%;
+  max-width: none; /* 移除最大宽度限制 */
   padding: 20px;
 }
 
@@ -291,6 +293,7 @@ const handleRegister = async () => {
 .register-card {
   width: 100%;
   max-width: 420px;
+  margin: 0 auto;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);

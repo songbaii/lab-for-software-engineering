@@ -227,7 +227,7 @@ const fetchMovies = async () => {
     const result = response;
     
     if (result.success) {
-      movies.value = result.movies || [];
+      movies.value = result.recommend_movies || [];
       if (movies.value.length === 0) {
         fetchError.value = '暂无推荐电影';
       }
@@ -337,6 +337,9 @@ onMounted(() => {
 .dashboard-container {
   min-height: 100vh;
   background: #f8fafc;
+  width: 100%;
+  max-width: none;
+  padding: 30px 20px;
 }
 
 /* 导航栏 */
@@ -344,6 +347,8 @@ onMounted(() => {
   background: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: sticky;
+  max-width: none; /* 移除导航栏宽度限制 */
+  padding: 0 20px;
   top: 0;
   z-index: 100;
 }

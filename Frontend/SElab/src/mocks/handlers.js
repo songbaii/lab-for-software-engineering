@@ -197,7 +197,7 @@ export const handlers = [
         return HttpResponse.json({
             success: true,
             message: '获取推荐成功',
-            movies: selectedMovies
+            recommend_movies: selectedMovies
         })
     }),
     // 评分接口 handler
