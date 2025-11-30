@@ -329,5 +329,18 @@ def recommend():
         'recommend_movies': recommend_movies
     }), 200
 
+@app.route('/api/like', methods=['POST'])
+def like():
+    '''
+    用户喜好接口
+    接受的json格式:{user_id": "用户账号" number类型, "like": "用户喜好" 数组类型，其中应当是电影类别名称的数组}
+    返回的json格式:{"success": "推荐结果" boolean类型， "message": "提示信息" string类型}
+    '''
+    if not request.is_json:
+        return jsonify({
+            'success': False,
+            'message': "请求电影推荐数据格式错误"
+        }), 400
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
