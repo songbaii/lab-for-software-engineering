@@ -339,8 +339,41 @@ def like():
     if not request.is_json:
         return jsonify({
             'success': False,
-            'message': "请求电影推荐数据格式错误"
+            'message': "用户喜好数据格式错误"
         }), 400
+    data = request.get_json()
+
+    # 对应根本不存在这个属性的情况
+    if not isinstance(data, dict) or 'user_id' not in data or 'like' not in data:
+        return jsonify({
+            'success': False,
+            'message': "请求电影推荐属性缺失"
+        }), 400
+
+    user_id = str(data.get('user_id')).strip()
+
+    if not user_id:
+        return jsonify({
+            'success': False,
+            'message': '用户id不能为空',
+        }), 400
+
+    likes = data.get('like')
+    if len(likes) == 0:
+        return jsonify({
+            'success': True,
+            'message': "用户暂时没有喜欢的电影"
+        })
+
+    for like in likes:
+        genre_record = GenreTable.query.filter_by(genre_name = like).first()
+        if not genre_record:
+            return jsonify({
+                'success': False,
+                'message': "传输的类别错误，不存在这个类别！！！"
+            })
+        genre_id = genre_record.genre_id
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
