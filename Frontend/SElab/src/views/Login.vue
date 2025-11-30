@@ -74,7 +74,7 @@
             />
             <span class="checkbox-text">记住我</span>
           </label>
-          <a href="#" class="forgot-password" :disabled="isLoading">忘记密码?</a>
+          <!-- <a href="#" class="forgot-password" :disabled="isLoading">忘记密码?</a> -->
         </div>
 
         <!-- 登录错误提示 -->
