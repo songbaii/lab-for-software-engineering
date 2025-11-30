@@ -21,4 +21,22 @@ html, body {
 #app {
   height: 100%;
 }
-</style>
+/* 隐藏浏览器默认密码切换按钮 */
+/* 针对所有密码输入框的通用解决方案 */
+input[type="password"] {
+    /* 隐藏Edge的眼睛图标 */
+    &::-ms-reveal {
+        display: none;
+    }
+    
+    /* 隐藏Chrome/Safari的自动填充图标 */
+    &::-webkit-contacts-auto-fill-button,
+    &::-webkit-credentials-auto-fill-button {
+        display: none !important;
+    }
+    
+    /* 隐藏Firefox的密码显示按钮（如果需要） */
+    &::-moz-text-field-decoration {
+        display: none;
+    }
+}</style>
