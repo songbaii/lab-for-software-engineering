@@ -274,11 +274,19 @@ class TestRecommend:
 
     def test_success_recommend(self, client):
         test_user = UserJudge.query.first()
+        like = ['War', 'Horror']
+        response = client.post('/api/like', json={'user_id': test_user.user_id, 'like': like})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 201
+        assert response.get_json()['success'] == True
         response = client.post('/api/recommend', json={'user_id': test_user.user_id, 'record_times': 0})
         print(f"Response status: {response.status_code}")
         print(f"Response JSON: {response.get_json()}")
         assert response.status_code == 200
         assert response.get_json()['success'] == True
+        UserFavoriteGenres.query.filter_by(user_id=test_user.user_id).delete()
+        db.session.commit()
 
 class Testlike:
 
