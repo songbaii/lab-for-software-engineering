@@ -61,3 +61,14 @@ class MovieStats(db.Model):
     avg_rating = db.Column(db.DECIMAL(3, 2), nullable=False)
     vote_count = db.Column(db.Integer, nullable=False)
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
+
+
+class UserFavoriteGenres(db.Model):
+    __tablename__ = 'user_favorite_genres'
+
+    # 复合主键：user_id 和 genre_id
+    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id', ondelete='CASCADE'), primary_key=True, nullable=False)
+
+    genre_id = db.Column(db.SmallInteger, db.ForeignKey('genre_table.genre_id', ondelete='CASCADE'),primary_key=True, nullable=False)
+
+    preference_score = db.Column(db.DECIMAL(3, 2), default=1.0, nullable=False)

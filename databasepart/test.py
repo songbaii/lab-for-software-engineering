@@ -6,7 +6,7 @@ sys.path.insert(0, project_root)
 
 import pytest
 from back_end import app, db
-from models import User, Movie, UserJudge
+from models import User, Movie, UserJudge, UserFavoriteGenres
 
 @pytest.fixture
 def client():
@@ -279,3 +279,55 @@ class TestRecommend:
         print(f"Response JSON: {response.get_json()}")
         assert response.status_code == 200
         assert response.get_json()['success'] == True
+
+class Testlike:
+
+    def test_like_no_like(self, client):
+        test_user = User(user_name='123', password='123')
+        db.session.add(test_user)
+        db.session.commit()
+        test_user_id = test_user.user_id
+        like = []
+        response = client.post('/api/like', json={'user_id': test_user_id, 'like': like})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 200
+        assert response.get_json()['success'] == True
+        db.session.delete(test_user)
+        db.session.commit()
+
+    def test_like_add_like(self, client):
+        test_user = User(user_name='123', password='123')
+        db.session.add(test_user)
+        db.session.commit()
+        test_user_id = test_user.user_id
+        like = ['War', 'Horror']
+        response = client.post('/api/like_query', json={'user_id': test_user_id})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 200
+        assert response.get_json()['success'] == True
+        response = client.post('/api/like', json={'user_id': test_user_id, 'like': like})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 201
+        assert response.get_json()['success'] == True
+        response = client.post('/api/like_query', json={'user_id': test_user_id})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 200
+        assert response.get_json()['success'] == True
+        response = client.post('/api/like', json={'user_id': test_user_id, 'like': ['Thriller']})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 201
+        assert response.get_json()['success'] == True
+        response = client.post('/api/like_query', json={'user_id': test_user_id})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 200
+        assert response.get_json()['success'] == True
+        UserFavoriteGenres.query.filter_by(user_id=test_user_id).delete()
+        db.session.commit()
+        db.session.delete(test_user)
+        db.session.commit()

@@ -12,7 +12,7 @@ app.config['JSON_AS_ASCII'] = False
 # 初始化数据库
 db.init_app(app)
 
-from models import Movie, MovieGenre, UserJudge, UserComment, User, GenreTable, MovieStats
+from models import Movie, UserJudge, UserFavoriteGenres, User, GenreTable, MovieStats
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -329,11 +329,73 @@ def recommend():
         'recommend_movies': recommend_movies
     }), 200
 
+@app.route('/api/like_query', methods=['POST'])
+def like_query():
+    '''
+    用户喜好查询接口
+    接受的json格式:{"user_id": "用户账号" number类型}
+    返回的json格式:{"success": "推荐结果" boolean类型, "message": "提示信息" string类型, "like": "用户喜好" 数组类型,其中应当是电影类别名称的数组}
+    '''
+    if not request.is_json:
+        return jsonify({
+            'success': False,
+            'message': "用户喜好查询数据格式错误"
+        }), 400
+    data = request.get_json()
+    # 对应根本不存在这个属性的情况
+    if not isinstance(data, dict) or 'user_id' not in data:
+        return jsonify({
+            'success': False,
+            'message': "用户喜好查询属性缺失"
+        }), 400
+
+    user_id = str(data.get('user_id')).strip()
+
+    if not user_id:
+        return jsonify({
+            'success': False,
+            'message': '用户id不能为空',
+        }), 400
+
+    try:
+        user_id = int(user_id)
+    except Exception:
+        return jsonify({
+            'success': False,
+            'message': "用户id输入存在问题"
+        }), 400
+
+    user = User.query.filter_by(user_id=user_id).first()
+
+    if not user:
+        return jsonify({
+            'success': False,
+            'message': "不存在该用户"
+        }), 401
+
+    likes = UserFavoriteGenres.query.filter_by(user_id=user.user_id).all()
+    if not likes:
+        return jsonify({
+            'success': True,
+            'message': "当前还没有喜好",
+            'like': []
+        }), 200
+    else:
+        like_list = []
+        for like_type in likes:
+            like_genre = GenreTable.query.filter_by(genre_id=like_type.genre_id).first()
+            like_list.append(like_genre.genre_name)
+        return jsonify({
+            'success': True,
+            'message': "成功查询到先前选择的电影喜好",
+            'like': like_list
+        }), 200
+
 @app.route('/api/like', methods=['POST'])
 def like():
     '''
-    用户喜好接口
-    接受的json格式:{user_id": "用户账号" number类型, "like": "用户喜好" 数组类型，其中应当是电影类别名称的数组}
+    用户喜好修改接口
+    接受的json格式:{"user_id": "用户账号" number类型, "like": "用户喜好" 数组类型，其中应当是电影类别名称的数组}
     返回的json格式:{"success": "推荐结果" boolean类型， "message": "提示信息" string类型}
     '''
     if not request.is_json:
@@ -347,7 +409,7 @@ def like():
     if not isinstance(data, dict) or 'user_id' not in data or 'like' not in data:
         return jsonify({
             'success': False,
-            'message': "请求电影推荐属性缺失"
+            'message': "用户喜好修改属性缺失"
         }), 400
 
     user_id = str(data.get('user_id')).strip()
@@ -363,16 +425,24 @@ def like():
         return jsonify({
             'success': True,
             'message': "用户暂时没有喜欢的电影"
-        })
+        }), 200
 
+    UserFavoriteGenres.query.filter_by(user_id=user_id).delete()
     for like in likes:
         genre_record = GenreTable.query.filter_by(genre_name = like).first()
         if not genre_record:
             return jsonify({
                 'success': False,
                 'message': "传输的类别错误，不存在这个类别！！！"
-            })
+            }), 400
         genre_id = genre_record.genre_id
+        new_user_fav = UserFavoriteGenres(genre_id=genre_id, user_id=user_id, preference_score=1)
+        db.session.add(new_user_fav)
+    db.session.commit()
+    return jsonify({
+        'success': True,
+        'message': "类别已经成功加载"
+    }), 201
 
 
 if __name__ == '__main__':
