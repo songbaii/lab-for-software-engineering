@@ -5,6 +5,13 @@
       <div class="nav-content">
         <h1 class="nav-logo">电影推荐系统</h1>
         <div class="nav-actions">
+          <button class="preference-btn" @click="showPreferenceModal = true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            偏好设置
+          </button>
           <span class="user-info">欢迎，用户 {{ userInfo.user_id }}</span>
           <button class="logout-btn" @click="handleLogout">退出登录</button>
         </div>
@@ -76,6 +83,40 @@
         </div>
       </div>
     </main>
+    <!-- 偏好设置模态框 -->
+    <div v-if="showPreferenceModal" class="modal-overlay" @click="handlePreferenceModalClose">
+      <div class="modal-content preference-modal" @click.stop>
+        <button class="modal-close" @click="showPreferenceModal = false">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <div class="modal-header">
+          <h2>偏好设置</h2>
+          <p class="preference-subtitle">选择您喜欢的电影类型</p>
+        </div>
+        <div class="modal-body">
+          <div class="preference-grid">
+            <button
+              v-for="category in movieCategories"
+              :key="category"
+              class="preference-btn"
+              :class="{ active: userPreferences.includes(category) }"
+              @click="togglePreference(category)"
+            >
+              {{ category }}
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="save-btn" @click="savePreferences" :disabled="isSavingPreferences">
+            {{ isSavingPreferences ? '保存中...' : '保存偏好' }}
+          </button>
+          <button class="cancel-btn" @click="showPreferenceModal = false">取消</button>
+        </div>
+      </div>
+    </div>
 
     <!-- 电影详情模态框 -->
     <div v-if="selectedMovie" class="modal-overlay" @click="selectedMovie = null">
@@ -154,6 +195,17 @@ const movies = ref([]);
 const selectedMovie = ref(null);
 const userRatings = ref({});
 
+// 新增：偏好设置相关状态
+const showPreferenceModal = ref(false);
+const userPreferences = ref([]);
+const isSavingPreferences = ref(false);
+// 电影类别列表
+const movieCategories = ref([
+  'Action', 'Adventure', 'Animation', 'Children', 'Comedy',
+  'Crime', 'Documentary', 'Drama', 'Fantasy', 'Film-Noir',
+  'Horror', 'Musical', 'Mystery', 'Romance', 'Sci-Fi',
+  'Thriller', 'War', 'Western'
+]);
 // 新增：推荐次数记录
 const recordTimes = ref(0);
 // 新增：标记是否有评分操作
@@ -167,10 +219,37 @@ const ratingOptions = computed(() => {
   }
   return options;
 });
+
+/**
+ * 获取用户偏好
+ */
+const fetchUserPreferences = async () => {
+  if (!userInfo.value.user_id) return;
+  
+  try {
+    const response = await apiService.post('/api/like_query', {
+      user_id: Number(userInfo.value.user_id)
+    });
+    
+    if (response.success) {
+      userPreferences.value = response.like || [];
+      console.log('获取用户偏好成功:', userPreferences.value);
+      
+      // 如果用户偏好为空，自动打开偏好设置模态框
+      if (userPreferences.value.length === 0) {
+        showPreferenceModal.value = true;
+      }
+    } else {
+      console.error('获取用户偏好失败:', response.message);
+    }
+  } catch (error) {
+    console.error('获取用户偏好请求失败:', error);
+  }
+};
 /**
  * 获取用户信息
  */
-const getUserInfo = () => {
+const getUserInfo = async () => {
   // 优先从sessionStorage获取（当前会话）
   let storedInfo = sessionStorage.getItem('userInfo');
   
@@ -182,6 +261,8 @@ const getUserInfo = () => {
   if (storedInfo) {
     userInfo.value = JSON.parse(storedInfo);
     console.log('获取用户信息成功:', userInfo.value);
+    // 获取用户偏好
+    await fetchUserPreferences();
   } else {
     // 如果没有用户信息，跳转到登录页
     console.log('未找到用户信息，跳转到登录页');
@@ -294,6 +375,60 @@ const handleRatingSelect = async (movie, event) => {
 //   //   rating: rating
 //   // });
 // };
+
+/**
+ * 切换偏好选择
+ */
+const togglePreference = (category) => {
+  const index = userPreferences.value.indexOf(category);
+  if (index > -1) {
+    userPreferences.value.splice(index, 1);
+  } else {
+    userPreferences.value.push(category);
+  }
+};
+
+/**
+ * 保存用户偏好
+ */
+const savePreferences = async () => {
+  if (!userInfo.value.user_id) return;
+  
+  try {
+    isSavingPreferences.value = true;
+    
+    const response = await apiService.post('/api/like', {
+      user_id: Number(userInfo.value.user_id),
+      like: userPreferences.value
+    });
+    
+    if (response.success) {
+      console.log('保存偏好成功');
+      showPreferenceModal.value = false;
+      
+      // 刷新电影推荐
+      if (userPreferences.value.length > 0) {
+        await fetchMovies();
+      }
+    } else {
+      console.error('保存偏好失败:', response.message);
+      fetchError.value = '保存偏好失败，请重试';
+    }
+  } catch (error) {
+    console.error('保存偏好请求失败:', error);
+    fetchError.value = '保存偏好失败，请检查网络连接';
+  } finally {
+    isSavingPreferences.value = false;
+  }
+};
+
+/**
+ * 处理偏好模态框关闭
+ */
+const handlePreferenceModalClose = () => {
+  showPreferenceModal.value = false;
+};
+
 
 /**
  * 退出登录
@@ -763,5 +898,125 @@ onMounted(() => {
 
 .stat-value {
   color: #6b7280;
+}
+/* 新增偏好设置按钮样式 */
+.preference-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #0ea06f;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.preference-btn:hover {
+  background: #059669;
+}
+
+/* 偏好设置模态框样式 */
+.preference-modal {
+  max-width: 800px;
+}
+
+.preference-subtitle {
+  margin: 8px 0 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.preference-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.preference-grid .preference-btn {
+  padding: 12px 16px;
+  background: #f8fafc;
+  color: #475569;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-align: center;
+  justify-content: center;
+}
+
+.preference-grid .preference-btn:hover {
+  border-color: #667eea;
+  background: #f0f4ff;
+}
+
+.preference-grid .preference-btn.active {
+  background: #667eea;
+  color: #fff;
+  border-color: #667eea;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 20px 30px 30px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.save-btn {
+  padding: 10px 20px;
+  background: #667eea;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.save-btn:hover:not(:disabled) {
+  background: #556cd6;
+}
+
+.save-btn:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  padding: 10px 20px;
+  background: #f1f5f9;
+  color: #64748b;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.cancel-btn:hover {
+  background: #e2e8f0;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .preference-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+  
+  .preference-grid .preference-btn {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  
+  .modal-footer {
+    flex-direction: column;
+  }
 }
 </style>

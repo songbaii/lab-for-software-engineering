@@ -1,5 +1,10 @@
 import { http, HttpResponse } from 'msw'
+// 模拟用户偏好数据存储
+const userPreferences = new Map()
 
+// 初始化一些测试用户的偏好数据
+userPreferences.set(123456, ['Action', 'Drama', 'Sci-Fi'])
+userPreferences.set(350234, ['Comedy', 'Romance'])
 export const handlers = [
     // login handler
     //  POST方法，发送json如下：
@@ -238,4 +243,77 @@ export const handlers = [
             message: '评分成功'
         })
     }),
+    // 新增：用户偏好查询接口
+    http.post('/api/like_query', async ({ request }) => {
+        console.log('Mocked like_query request received')
+        const { user_id } = await request.json()
+        
+        // 验证用户ID
+        if (typeof user_id !== 'number') {
+            return HttpResponse.json({ 
+                success: false, 
+                message: '用户ID必须是数字类型',
+                like: []
+            })
+        }
+
+        // 查询用户偏好
+        const preferences = userPreferences.get(user_id) || []
+        console.log(`Query preferences for user ${user_id}:`, preferences)
+        
+        return HttpResponse.json({
+            success: true,
+            message: '偏好查询成功',
+            like: preferences
+        })
+    }),
+
+    // 新增：用户偏好设置接口
+    http.post('/api/like', async ({ request }) => {
+        console.log('Mocked like request received')
+        const { user_id, like } = await request.json()
+        
+        // 验证参数
+        if (typeof user_id !== 'number') {
+            return HttpResponse.json({ 
+                success: false, 
+                message: '用户ID必须是数字类型'
+            })
+        }
+        
+        // 验证偏好数组
+        if (!Array.isArray(like)) {
+            return HttpResponse.json({ 
+                success: false, 
+                message: '用户喜好必须是数组类型'
+            })
+        }
+
+        // 验证数组中的每个元素都是有效的电影类别
+        const validCategories = [
+            'Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime',
+            'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'Musical',
+            'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western'
+        ]
+        
+        const invalidCategories = like.filter(category => 
+            !validCategories.includes(category)
+        )
+        
+        if (invalidCategories.length > 0) {
+            return HttpResponse.json({ 
+                success: false, 
+                message: `无效的电影类别: ${invalidCategories.join(', ')}`
+            })
+        }
+
+        // 更新用户偏好
+        userPreferences.set(user_id, like)
+        console.log(`Updated preferences for user ${user_id}:`, like)
+        
+        return HttpResponse.json({
+            success: true,
+            message: '偏好设置成功'
+        })
+    })
 ]
