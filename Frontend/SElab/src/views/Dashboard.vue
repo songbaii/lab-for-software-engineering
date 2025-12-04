@@ -4,16 +4,45 @@
     <nav class="dashboard-nav">
       <div class="nav-content">
         <h1 class="nav-logo">电影推荐系统</h1>
+        <span class="user-info">欢迎，用户 {{ userInfo.user_id }}</span>
         <div class="nav-actions">
-          <button class="preference-btn" @click="showPreferenceModal = true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
-            偏好设置
-          </button>
-          <span class="user-info">欢迎，用户 {{ userInfo.user_id }}</span>
-          <button class="logout-btn" @click="handleLogout">退出登录</button>
+          <div class="dropdown">
+            <button class="user-menu-btn" @click="showUserMenu = !showUserMenu">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </button>
+            
+            <!-- 下拉菜单 -->
+            <div class="dropdown-menu" v-if="showUserMenu">
+              <button class="dropdown-item" @click="showPreferenceModal = true; showUserMenu = false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+              偏好设置
+              </button>
+              
+              <button class="dropdown-item" @click="showChangePasswordModal = true; showUserMenu = false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                修改密码
+              </button>
+              
+              <div class="dropdown-divider"></div>
+              
+              <button class="dropdown-item logout" @click="handleLogout">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16,17 21,12 16,7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                退出登录
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </nav>
@@ -171,11 +200,81 @@
         </div>
       </div>
     </div>
+    <!-- 在模态框部分添加修改密码模态框 -->
+    <div v-if="showChangePasswordModal" class="modal-overlay" @click="handleChangePasswordModalClose">
+      <div class="modal-content" @click.stop>
+        <button class="modal-close" @click="showChangePasswordModal = false">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        
+        <div class="modal-header">
+          <h2>修改密码</h2>
+          <p class="password-subtitle">请设置新的登录密码</p>
+        </div>
+        
+        <div class="modal-body">
+          <form class="password-form" @submit.prevent="handleChangePassword">
+            <div class="form-group">
+              <label for="newPassword" class="form-label">新密码</label>
+              <input
+                id="newPassword"
+                v-model="newPassword"
+                type="password"
+                class="form-input"
+                placeholder="请输入新密码"
+                required
+                minlength="6"
+              />
+            </div>
+            
+            <div class="form-group">
+              <label for="confirmPassword" class="form-label">确认新密码</label>
+              <input
+                id="confirmPassword"
+                v-model="confirmPassword"
+                type="password"
+                class="form-input"
+                placeholder="请再次输入新密码"
+                required
+                minlength="6"
+              />
+            </div>
+            
+            <div v-if="passwordError" class="password-error">
+              {{ passwordError }}
+            </div>
+            
+            <div class="password-requirements">
+              <p>密码要求：</p>
+              <ul>
+                <li :class="{ 'met': newPassword.length >= 6 }">至少6个字符</li>
+                <li :class="{ 'met': hasUpperCase && hasLowerCase }">包含大小写字母</li>
+                <li :class="{ 'met': hasNumber }">包含数字</li>
+              </ul>
+            </div>
+          </form>
+        </div>
+        
+        <div class="modal-footer">
+          <button 
+            class="save-btn" 
+            @click="handleChangePassword"
+            :disabled="isChangingPassword || !isPasswordValid"
+          >
+            {{ isChangingPassword ? '修改中...' : '确认修改' }}
+          </button>
+          <button class="cancel-btn" @click="showChangePasswordModal = false">取消</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiService } from '../utils/api.js';
 import { computed } from 'vue';
@@ -210,6 +309,137 @@ const movieCategories = ref([
 const recordTimes = ref(0);
 // 新增：标记是否有评分操作
 const hasRated = ref(false);
+
+// 在原有的响应式变量中添加
+const showUserMenu = ref(false);
+const showChangePasswordModal = ref(false);
+const newPassword = ref('');
+const confirmPassword = ref('');
+const passwordError = ref('');
+const isChangingPassword = ref(false);
+
+// ================== 密码修改相关逻辑 ==================
+
+// 计算属性：密码验证
+const hasUpperCase = computed(() => /[A-Z]/.test(newPassword.value));
+const hasLowerCase = computed(() => /[a-z]/.test(newPassword.value));
+const hasNumber = computed(() => /[0-9]/.test(newPassword.value));
+const isPasswordValid = computed(() => {
+  // return newPassword.value.length >= 6 && 
+  //        newPassword.value === confirmPassword.value &&
+  //        hasUpperCase.value && 
+  //        hasLowerCase.value && 
+  //        hasNumber.value;
+  return newPassword.value.length >= 6 && 
+         newPassword.value === confirmPassword.value;
+});
+// 点击外部关闭下拉菜单
+const handleClickOutside = (event) => {
+  if (!event.target.closest('.dropdown')) {
+    showUserMenu.value = false;
+  }
+};
+
+// 修改密码处理
+const handleChangePassword = async () => {
+  if (!isPasswordValid.value) {
+    passwordError.value = '请确保密码符合要求且两次输入一致';
+    return;
+  }
+  
+  try {
+    isChangingPassword.value = true;
+    passwordError.value = '';
+    
+    const response = await apiService.post('/api/change_password', {
+      user_id: Number(userInfo.value.user_id),
+      new_password: newPassword.value
+    });
+    
+    if (response.success) {
+      console.log('密码修改成功');
+      showChangePasswordModal.value = false;
+      // 清空表单
+      newPassword.value = '';
+      confirmPassword.value = '';
+      // 可以添加成功提示
+      alert('密码修改成功！');
+    } else {
+      passwordError.value = response.message || '密码修改失败，请重试';
+    }
+  } catch (error) {
+    console.error('修改密码请求失败:', error);
+    passwordError.value = '修改密码失败，请检查网络连接';
+  } finally {
+    isChangingPassword.value = false;
+  }
+};
+
+// 处理修改密码模态框关闭
+const handleChangePasswordModalClose = () => {
+  showChangePasswordModal.value = false;
+  // 清空表单和错误信息
+  newPassword.value = '';
+  confirmPassword.value = '';
+  passwordError.value = '';
+};
+
+
+/**
+ * 切换偏好选择
+ */
+const togglePreference = (category) => {
+  const index = userPreferences.value.indexOf(category);
+  if (index > -1) {
+    userPreferences.value.splice(index, 1);
+  } else {
+    userPreferences.value.push(category);
+  }
+};
+
+/**
+ * 保存用户偏好
+ */
+const savePreferences = async () => {
+  if (!userInfo.value.user_id) return;
+  
+  try {
+    isSavingPreferences.value = true;
+    
+    const response = await apiService.post('/api/like', {
+      user_id: Number(userInfo.value.user_id),
+      like: userPreferences.value
+    });
+    
+    if (response.success) {
+      console.log('保存偏好成功');
+      showPreferenceModal.value = false;
+      
+      // 刷新电影推荐
+      if (userPreferences.value.length > 0) {
+        await fetchMovies();
+      }
+    } else {
+      console.error('保存偏好失败:', response.message);
+      fetchError.value = '保存偏好失败，请重试';
+    }
+  } catch (error) {
+    console.error('保存偏好请求失败:', error);
+    fetchError.value = '保存偏好失败，请检查网络连接';
+  } finally {
+    isSavingPreferences.value = false;
+  }
+};
+
+/**
+ * 处理偏好模态框关闭
+ */
+const handlePreferenceModalClose = () => {
+  showPreferenceModal.value = false;
+};
+
+
+// ================= 电影推荐相关逻辑 ==================
 
 // 评分选项 (0.5-5分，粒度为0.5)
 const ratingOptions = computed(() => {
@@ -319,6 +549,8 @@ const fetchMovies = async () => {
 //   return content.length > 100 ? content.substring(0, 100) + '...' : content;
 // };
 
+// ================= 电影详情和评分相关逻辑 ==================
+
 /**
  * 显示电影详情
  */
@@ -376,59 +608,6 @@ const handleRatingSelect = async (movie, event) => {
 //   // });
 // };
 
-/**
- * 切换偏好选择
- */
-const togglePreference = (category) => {
-  const index = userPreferences.value.indexOf(category);
-  if (index > -1) {
-    userPreferences.value.splice(index, 1);
-  } else {
-    userPreferences.value.push(category);
-  }
-};
-
-/**
- * 保存用户偏好
- */
-const savePreferences = async () => {
-  if (!userInfo.value.user_id) return;
-  
-  try {
-    isSavingPreferences.value = true;
-    
-    const response = await apiService.post('/api/like', {
-      user_id: Number(userInfo.value.user_id),
-      like: userPreferences.value
-    });
-    
-    if (response.success) {
-      console.log('保存偏好成功');
-      showPreferenceModal.value = false;
-      
-      // 刷新电影推荐
-      if (userPreferences.value.length > 0) {
-        await fetchMovies();
-      }
-    } else {
-      console.error('保存偏好失败:', response.message);
-      fetchError.value = '保存偏好失败，请重试';
-    }
-  } catch (error) {
-    console.error('保存偏好请求失败:', error);
-    fetchError.value = '保存偏好失败，请检查网络连接';
-  } finally {
-    isSavingPreferences.value = false;
-  }
-};
-
-/**
- * 处理偏好模态框关闭
- */
-const handlePreferenceModalClose = () => {
-  showPreferenceModal.value = false;
-};
-
 
 /**
  * 退出登录
@@ -446,7 +625,14 @@ const handleLogout = () => {
 onMounted(() => {
   getUserInfo();
   fetchMovies();
+  document.addEventListener('click', handleClickOutside);
 });
+
+// 组件卸载时移除事件监听
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
+});
+
 </script>
 
 <style scoped>
@@ -1017,6 +1203,167 @@ onMounted(() => {
   
   .modal-footer {
     flex-direction: column;
+  }
+}
+
+/* 新增下拉菜单样式 */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.user-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #64748b;
+}
+
+.user-menu-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  z-index: 1000;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: #475569;
+  transition: background 0.3s ease;
+}
+
+.dropdown-item:hover {
+  background: #f8fafc;
+}
+
+.dropdown-item.logout {
+  color: #ef4444;
+}
+
+.dropdown-item.logout:hover {
+  background: #fef2f2;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 4px 0;
+}
+
+/* 修改密码表单样式 */
+.password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+.form-input {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.password-error {
+  padding: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+.password-requirements {
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.password-requirements p {
+  margin: 0 0 8px 0;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.password-requirements ul {
+  margin: 0;
+  padding-left: 16px;
+  color: #94a3b8;
+}
+
+.password-requirements li.met {
+  color: #10b981;
+  text-decoration: line-through;
+}
+
+.password-subtitle {
+  margin: 8px 0 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* 移除原有的偏好设置按钮和退出登录按钮样式 */
+.nav-actions .preference-btn,
+.nav-actions .logout-btn {
+  display: none;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .dropdown-menu {
+    right: -10px;
+    min-width: 160px;
+  }
+  
+  .user-menu-btn {
+    padding: 6px 10px;
+    font-size: 13px;
   }
 }
 </style>

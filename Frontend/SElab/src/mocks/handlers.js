@@ -315,5 +315,31 @@ export const handlers = [
             success: true,
             message: '偏好设置成功'
         })
+    }),
+    // 修改密码接口 handler
+    // POST /api/change_password
+    // 请求体: { "user_id": "用户账号" number, "new_password": "新密码" string类型 }
+    // 响应: { "success": "修改结果" boolean类型， "message": "提示信息" string类型 }
+    http.post('/api/change_password', async ({ request }) => {
+        console.log('Mocked change_password request received')
+        const { user_id, new_password } = await request.json()
+        // 验证new_password
+        if (typeof new_password !== 'string') {
+            return HttpResponse.json({ 
+                success: false, 
+                message: '新密码必须是字符串类型' 
+            })
+        } else if (new_password.length < 6) {
+            return HttpResponse.json({ 
+                success: false, 
+                message: '新密码长度必须至少为6个字符' 
+            })
+        } else {
+            console.log(`Password changed for user ID: ${user_id}`)
+            return HttpResponse.json({
+                success: true,
+                message: '密码修改成功'
+            })
+        }
     })
 ]
