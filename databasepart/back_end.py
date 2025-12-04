@@ -15,7 +15,7 @@ db.init_app(app)
 from models import Movie, UserJudge, UserFavoriteGenres, User, GenreTable, MovieStats
 
 @app.route('/api/health', methods=['GET'])
-def health_check():
+def health_check():# 
     """
     一个用于检查服务器状态的接口
     """
@@ -308,7 +308,7 @@ def recommend():
     except Exception:
         return jsonify({
             'success': False,
-            'message': "用户id输入存在问题"
+            'message': "次数输入存在问题"
         }), 400
 
     user = User.query.filter_by(user_id=user_id).first()
@@ -446,7 +446,7 @@ def like():
 def change_password():
     '''
     修改密码接口
-    接受的json格式:{"user_id": "用户账号" number类型, "old_password": "旧密码" string类型, "new_password": "新密码" string类型}
+    接受的json格式:{"user_id": "用户账号" number类型, "new_password": "新密码" string类型}
     返回的json格式:{"success": "修改结果" boolean类型， "message": "提示信息" string类型}
     '''
     if not request.is_json:
@@ -457,14 +457,13 @@ def change_password():
 
     data = request.get_json()
 
-    if not isinstance(data, dict) or 'user_id' not in data or 'old_password' not in data or 'new_password' not in data:
+    if not isinstance(data, dict) or 'user_id' not in data or 'new_password' not in data:
         return jsonify({
             'success': False,
             'message': "修改密码所需数据属性缺失"
         }), 400
 
     user_id = str(data.get('user_id')).strip()
-    old_password = str(data.get('old_password')).strip()
     new_password = str(data.get('new_password')).strip()
 
     if not user_id:
@@ -473,17 +472,11 @@ def change_password():
             'message': '用户id不能为空',
         }), 400
 
-    if not old_password:
-        return jsonify({
-            'success': False,
-            'message': '旧密码不能为空'
-        })
-
     if not new_password:
         return jsonify({
             'success': False,
             'message': '新密码不能为空'
-        })
+        }), 400
 
     try:
         user_id = int(user_id)
@@ -501,18 +494,12 @@ def change_password():
             'message': "不存在该用户"
         }), 401
 
-    if old_password != user.password:
-        return jsonify({
-            'success': False,
-            'message': "有密码缺失"
-        })
-    else:
-        user.password = new_password
-        db.session.commit()
-        return jsonify({
-            'success': True,
-            'message': "成功修改密码"
-        })
+    user.password = new_password
+    db.session.commit()
+    return jsonify({
+        'success': True,
+        'message': "成功修改密码"
+    }), 200
 
 @app.route('/api/get_record', methods=['GET'])
 def get_record():
@@ -521,6 +508,56 @@ def get_record():
     接受的json格式:{"user_id": "用户账号" number类型}
     返回的json格式:{"success": "修改结果" boolean类型， "message": "提示信息" string类型， ”records“： "评分记录" list类型，其中其中每一个元素是dict，包含了 movie_name, rating, timestamp属性}
     """
+    if not request.is_json:
+        return jsonify({
+            'success': False,
+            'message': "查询数据格式错误"
+        }), 400
+
+    data = request.get_json()
+
+    if not isinstance(data, dict) or 'user_id' not in data:
+        return jsonify({
+            'success': False,
+            'message': "修改密码所需数据属性缺失"
+        }), 400
+
+    user_id = str(data.get('user_id')).strip()
+
+    if not user_id:
+        return jsonify({
+            'success': False,
+            'message': '用户id不能为空',
+        }), 400
+
+    try:
+        user_id = int(user_id)
+    except Exception:
+        return jsonify({
+            'success': False,
+            'message': "用户id输入存在问题"
+        }), 400
+
+    user = User.query.filter_by(user_id=user_id).first()
+
+    if not user:
+        return jsonify({
+            'success': False,
+            'message': "不存在该用户"
+        }), 401
+
+    results = db.session.query(
+        UserJudge.user_id,
+        UserJudge.movie_id,
+        UserJudge.rating,
+        UserJudge.timestamp,
+        Movie.movie_name,
+        Movie.release_year
+    ).join(
+        Movie, UserJudge.movie_id == Movie.movie_id
+    ).filter(
+        UserJudge.user_id == user_id
+    ).all()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

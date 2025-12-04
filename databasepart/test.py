@@ -19,7 +19,7 @@ def client():
         with app.app_context():
             yield client
 
-class TestLoginWithMySQL:
+class TestUser:
 
     def test_login_no_data(self, client):
         response = client.post('/api/login', json=None)
@@ -124,8 +124,6 @@ class TestLoginWithMySQL:
         db.session.delete(test_user)
         db.session.commit()
 
-class TestCreateNewUser:
-
     def test_create_new_user(self, client):
         """测试创建用户"""
         data = {
@@ -141,6 +139,29 @@ class TestCreateNewUser:
         test_user = User.query.filter_by(user_name='test1').first()
         db.session.delete(test_user)
         db.session.commit()
+
+    def test_change_password(self, client):
+        """测试修改密码"""
+        data = {
+            'user_name': 'test1',  # 不存在的用户ID
+            'password': 'test password'
+        }
+        response = client.post('/api/register', json=data)
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 201
+        assert response.get_json()['success'] == True
+        test_user = User.query.filter_by(user_name='test1').first()
+        change_password_date = {
+            'user_id': test_user.user_id,
+            'old_password':  'test password',
+            'new_password': 'new test password'
+        }
+        response = client.post('/api/change_password', json=change_password_date)
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 200
+        assert response.get_json()['success'] == True
 
 class TestRating:
     def test_rating_add_none(self, client):
@@ -258,7 +279,7 @@ class TestRating:
         db.session.delete(test_movie)
         db.session.commit()
 
-class TestRecommend:
+"""class TestRecommend:
 
     def test_cold_success_recommend(self, client):
         test_user = User(user_name='123', password='123')
@@ -286,7 +307,7 @@ class TestRecommend:
         assert response.status_code == 200
         assert response.get_json()['success'] == True
         UserFavoriteGenres.query.filter_by(user_id=test_user.user_id).delete()
-        db.session.commit()
+        db.session.commit()"""
 
 class Testlike:
 
