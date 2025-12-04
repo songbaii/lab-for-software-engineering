@@ -585,7 +585,7 @@ def get_record():
     """
     获取评分记录接口
     接受的json格式:{"user_id": "用户账号" number类型}
-    返回的json格式:{"success": "修改结果" boolean类型， "message": "提示信息" string类型， ”records“： "评分记录" list类型，其中其中每一个元素是dict，包含了 movie_name, rating, timestamp, movie_id属性}
+    返回的json格式:{"success": "修改结果" boolean类型， "message": "提示信息" string类型， "records"： "评分记录" list类型，其中其中每一个元素是dict，包含了 movie_name, rating, timestamp, movie_id属性}
     """
     try:
         if not request.is_json:
@@ -671,7 +671,7 @@ def get_movie():
     """
     获取电影详情接口
     接受的json格式:{"movie_id": "电影id" number类型}
-    返回的json格式:{"movie_name": "电影名称" string类型, "release_year": "发行年份" number类型, "genre_list": "所属类别" 数组类型, "avg_rating": "平均分" number类型, "vote_count": "投票人数" number类型, "short_comment": "AI短评" string类型}
+    返回的json格式:{"movie_name": "电影名称" string类型, "release_year": "发行年份" number类型, "genre_list": "所属类别" 数组类型, "avg_rating": "平均分" number类型, "vote_count": "投票人数" number类型, "short_comment": "AI短评" string类型, "success": "修改结果" boolean类型， "message": "提示信息" string类型}
     """
     try:
         if not request.is_json:
@@ -740,6 +740,15 @@ def get_movie():
     except Exception as e:
         print(f"发生错误{e}")
         return jsonify({'success': False, 'message': "系统错误"}), 500
+
+@app.route('/api/delete_judge', methods=['POST'])
+def delete_judge():
+    """
+    删除评分记录
+    接受的json格式:{"movie_id": "电影id" number类型 "user_id": "用户id" number类型}
+    返回的json格式:{"success": "删除结果" boolean类型， "message": "提示信息" string类型， }
+
+    """
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
