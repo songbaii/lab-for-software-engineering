@@ -742,93 +742,98 @@ def delete_judge():
     接受的json格式:{"movie_id": "电影id" number类型 "user_id": "用户id" number类型}
     返回的json格式:{"success": "删除结果" boolean类型， "message": "提示信息" string类型}
     """
-    if not request.is_json:
-        return jsonify({
-            'success': False,
-            'message': "数据非json错误"
-        }), 400
-
-    data = request.get_json()
-
-    if not isinstance(data, dict):
-        return jsonify({
-            'success': False,
-            'message': "数据非字典错误"
-        }), 400
-
-    if 'user_id' not in data or 'movie_id' not in data:
-        return jsonify({
-            'success': False,
-            'message': "属性缺失"
-        }), 400
-
-    user_id = str(data.get('user_id')).strip()
-    movie_id = str(data.get('movie_id')).strip()
-
-    if not movie_id:
-        return jsonify({
-            'success': False,
-            'message': "电影id不能为空"
-        }), 400
-
-    if not user_id:
-        return jsonify({
-            'success': False,
-            'message': "用户id不能为空"
-        })
-
     try:
-        movie_id = int(movie_id)
-    except Exception:
-        return jsonify({
-            'success': False,
-            'message': "电影id输入存在问题"
-        }), 400
+        if not request.is_json:
+            return jsonify({
+                'success': False,
+                'message': "数据非json错误"
+            }), 400
 
-    try:
-        user_id = int(user_id)
-    except Exception:
-        return jsonify({
-            'success': False,
-            'message': "用户id输入存在问题"
-        }), 400
+        data = request.get_json()
 
-    user = User.query.filter_by(user_id=user_id).first()
-    movie = Movie.query.filter_by(movie_id=movie_id).first()
+        if not isinstance(data, dict):
+            return jsonify({
+                'success': False,
+                'message': "数据非字典错误"
+            }), 400
 
-    if not user:
-        return jsonify({
-            'success': False,
-            'message': "不存在该用户"
-        }), 400
+        if 'user_id' not in data or 'movie_id' not in data:
+            return jsonify({
+                'success': False,
+                'message': "属性缺失"
+            }), 400
 
-    if not movie:
-        return jsonify({
-            'success': False,
-            'message': "不存在这一部电影"
-        }), 400
+        user_id = str(data.get('user_id')).strip()
+        movie_id = str(data.get('movie_id')).strip()
 
-    judge = UserJudge.query.filter_by(user_id=user_id, movie_id=movie_id).first()
-    if not judge:
-        return jsonify({
-            'success': True,
-            'message': "该用户不存在对这部电影的评分记录"
-        }), 200
-    else:
-        db.session.delete(judge)
-        db.session.commit()
-        now_movie_judge = UserJudge.query.filter_by(movie_id=movie_id).all()
-        ratings = [float(judge.rating) for judge in now_movie_judge]  # 转换为float
-        avg_rating = sum(ratings) / len(ratings)
-        now_stats = MovieStats.query.filter_by(movie_id=movie_id).first()
-        now_stats.avg_rating = avg_rating
-        now_stats.vote_count = len(now_movie_judge)
-        db.session.merge(now_stats)
-        db.session.commit()
-        return jsonify({
-            'success': True,
-            'message': "删除记录成功"
-        }), 200
+        if not movie_id:
+            return jsonify({
+                'success': False,
+                'message': "电影id不能为空"
+            }), 400
+
+        if not user_id:
+            return jsonify({
+                'success': False,
+                'message': "用户id不能为空"
+            })
+
+        try:
+            movie_id = int(movie_id)
+        except Exception:
+            return jsonify({
+                'success': False,
+                'message': "电影id输入存在问题"
+            }), 400
+
+        try:
+            user_id = int(user_id)
+        except Exception:
+            return jsonify({
+                'success': False,
+                'message': "用户id输入存在问题"
+            }), 400
+
+        user = User.query.filter_by(user_id=user_id).first()
+        movie = Movie.query.filter_by(movie_id=movie_id).first()
+
+        if not user:
+            return jsonify({
+                'success': False,
+                'message': "不存在该用户"
+            }), 400
+
+        if not movie:
+            return jsonify({
+                'success': False,
+                'message': "不存在这一部电影"
+            }), 400
+
+        judge = UserJudge.query.filter_by(user_id=user_id, movie_id=movie_id).first()
+        if not judge:
+            return jsonify({
+                'success': True,
+                'message': "该用户不存在对这部电影的评分记录"
+            }), 200
+        else:
+            db.session.delete(judge)
+            db.session.commit()
+            now_movie_judge = UserJudge.query.filter_by(movie_id=movie_id).all()
+            ratings = [float(judge.rating) for judge in now_movie_judge]  # 转换为float
+            avg_rating = sum(ratings) / len(ratings)
+            now_stats = MovieStats.query.filter_by(movie_id=movie_id).first()
+            now_stats.avg_rating = avg_rating
+            now_stats.vote_count = len(now_movie_judge)
+            db.session.merge(now_stats)
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'message': "删除记录成功"
+            }), 200
+    except Exception as e:
+        print(f"发生错误{e}")
+        return jsonify({'success': False, 'message': "系统错误"}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
