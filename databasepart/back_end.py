@@ -13,7 +13,7 @@ app.config['JSON_AS_ASCII'] = False
 # 初始化数据库
 db.init_app(app)
 
-from models import Movie, UserJudge, UserFavoriteGenres, User, GenreTable, MovieStats
+from models import Movie, UserJudge, UserFavoriteGenres, User, GenreTable, MovieStats, MovieGenre
 
 @app.route('/api/health', methods=['GET'])
 def health_check():# check
@@ -431,7 +431,6 @@ def like_query():# check
         print(f"发生错误{e}")
         return jsonify({'success': False, 'message': "系统错误"}), 500
 
-
 @app.route('/api/like', methods=['POST'])
 def like():# check
     """
@@ -588,81 +587,159 @@ def get_record():
     接受的json格式:{"user_id": "用户账号" number类型}
     返回的json格式:{"success": "修改结果" boolean类型， "message": "提示信息" string类型， ”records“： "评分记录" list类型，其中其中每一个元素是dict，包含了 movie_name, rating, timestamp, movie_id属性}
     """
-    if not request.is_json:
-        return jsonify({
-            'success': False,
-            'message': "数据非json错误"
-        }), 400
-
-    data = request.get_json()
-
-    if not isinstance(data, dict):
-        return jsonify({
-            'success': False,
-            'message': "数据非字典错误"
-        }), 400
-
-    if 'user_id' not in data:
-        return jsonify({
-            'success': False,
-            'message': "修改密码所需数据属性缺失"
-        }), 400
-
-    user_id = str(data.get('user_id')).strip()
-
-    if not user_id:
-        return jsonify({
-            'success': False,
-            'message': '用户id不能为空',
-        }), 400
-
     try:
-        user_id = int(user_id)
-    except Exception:
-        return jsonify({
-            'success': False,
-            'message': "用户id输入存在问题"
-        }), 400
+        if not request.is_json:
+            return jsonify({
+                'success': False,
+                'message': "数据非json错误"
+            }), 400
 
-    user = User.query.filter_by(user_id=user_id).first()
+        data = request.get_json()
 
-    if not user:
-        return jsonify({
-            'success': False,
-            'message': "不存在该用户"
-        }), 400
+        if not isinstance(data, dict):
+            return jsonify({
+                'success': False,
+                'message': "数据非字典错误"
+            }), 400
 
-    results = db.session.query(
-        UserJudge.rating,
-        UserJudge.timestamp,
-        UserJudge.movie_id,
-        Movie.movie_name
-    ).join(Movie, UserJudge.movie_id == Movie.movie_id).filter(UserJudge.user_id == user_id).all()
-    if not results:
+        if 'user_id' not in data:
+            return jsonify({
+                'success': False,
+                'message': "属性缺失"
+            }), 400
+
+        user_id = str(data.get('user_id')).strip()
+
+        if not user_id:
+            return jsonify({
+                'success': False,
+                'message': '用户id不能为空',
+            }), 400
+
+        try:
+            user_id = int(user_id)
+        except Exception:
+            return jsonify({
+                'success': False,
+                'message': "用户id输入存在问题"
+            }), 400
+
+        user = User.query.filter_by(user_id=user_id).first()
+
+        if not user:
+            return jsonify({
+                'success': False,
+                'message': "不存在该用户"
+            }), 400
+
+        results = db.session.query(
+            UserJudge.rating,
+            UserJudge.timestamp,
+            UserJudge.movie_id,
+            Movie.movie_name
+        ).join(Movie, UserJudge.movie_id == Movie.movie_id).filter(UserJudge.user_id == user_id).all()
+        if not results:
+            return jsonify({
+                'success': True,
+                'message': "先前没有评分过电影",
+                'records': []
+            }), 200
+        else:
+            json_list = [
+                {
+                    'rating': float(row.rating),
+                    'timestamp': row.timestamp.isoformat(),
+                    'movie_name': row.movie_name,
+                    'movie_id': row.movie_id
+                }
+                for row in results
+            ]
+            # 转为 JSON 字符串
+
+            json_str = json.dumps(json_list, ensure_ascii=False)
+            return jsonify({
+                'success': True,
+                'message': "成功返回用户评分记录",
+                'records': json_str
+            }), 200
+    except Exception as e:
+        print(f"发生错误{e}")
+        return jsonify({'success': False, 'message': "系统错误"}), 500
+
+@app.route('/api/get_movie', methods=['POST'])
+def get_movie():
+    """
+    获取电影详情接口
+    接受的json格式:{"movie_id": "电影id" number类型}
+    返回的json格式:{"movie_name": "电影名称" string类型, "release_year": "发行年份" number类型, "genre_list": "所属类别" 数组类型, "avg_rating": "平均分" number类型, "vote_count": "投票人数" number类型, "short_comment": "AI短评" string类型}
+    """
+    try:
+        if not request.is_json:
+            return jsonify({
+                'success': False,
+                'message': "数据非json错误"
+            }), 400
+
+        data = request.get_json()
+
+        if not isinstance(data, dict):
+            return jsonify({
+                'success': False,
+                'message': "数据非字典错误"
+            }), 400
+
+        if 'movie_id' not in data:
+            return jsonify({
+                'success': False,
+                'message': "属性缺失"
+            }), 400
+
+        movie_id = str(data.get('movie_id')).strip()
+        if not movie_id:
+            return jsonify({
+                'success': False,
+                'message': '电影id不能为空'
+            }), 400
+
+        try:
+            movie_id = int(movie_id)
+        except Exception:
+            return jsonify({
+                'success': False,
+                'message': "电影id输入存在问题"
+            }), 400
+
+        movie = Movie.query.filter_by(movie_id=movie_id).first()
+        if not movie:
+            return jsonify({
+                'success': False,
+                'message': "未查询到电影"
+            }), 400
+
+        movie_name = movie.movie_name
+        release_year = movie.release_year
+        movie_genre = MovieGenre.query.filter_by(movie_id=movie_id).all()
+        genre_list = []
+        for genre in movie_genre:
+            genre_name = GenreTable.query.filter_by(genre_id=genre.genre_id).first().genre_name
+            genre_list.append(genre_name)
+        movie_status = MovieStats.query.filter_by(movie_id=movie_id).first()
+        avg_rating = movie_status.avg_rating
+        vote_count = movie_status.vote_count
+        short_comment = generate_movie_review_interface({'movie_title' :movie_name})['data']['generated_review']
         return jsonify({
             'success': True,
-            'message': "先前没有评分过电影",
-            'records': []
+            'message': "成功查询到电影的信息",
+            'movie_name': movie_name,
+            'release_year': release_year,
+            'genre_list': genre_list,
+            'avg_rating': avg_rating,
+            'vote_count': vote_count,
+            'short_comment': short_comment
         }), 200
-    else:
-        json_list = [
-            {
-                'rating': float(row.rating),
-                'timestamp': row.timestamp.isoformat(),
-                'movie_name': row.movie_name,
-                'movie_id': row.movie_id
-            }
-            for row in results
-        ]
-        # 转为 JSON 字符串
-
-        json_str = json.dumps(json_list, ensure_ascii=False)
-        return jsonify({
-            'success': True,
-            'message': "成功返回用户评分记录",
-            'records': json_str
-        }), 200
-
+    except Exception as e:
+        print(f"发生错误{e}")
+        return jsonify({'success': False, 'message': "系统错误"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

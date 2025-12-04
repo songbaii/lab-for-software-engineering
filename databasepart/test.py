@@ -1,5 +1,7 @@
 import os, sys
 
+from openai import responses
+
 current_file = os.path.abspath(__file__)
 project_root = os.path.dirname(os.path.dirname(current_file))
 sys.path.insert(0, project_root)
@@ -398,3 +400,12 @@ class Testlike:
         db.session.commit()
         db.session.delete(test_user)
         db.session.commit()
+
+"""class TestMovie:
+    def test_get_movie(self, client):
+        test_movie = Movie.query.first()
+        responses = client.post('/api/get_movie', json={'movie_id': test_movie.movie_id})
+        print(f"Response status: {responses.status_code}")
+        print(f"Response JSON: {responses.get_json()}")
+        assert responses.status_code == 200
+        assert responses.get_json()['success'] == True"""
