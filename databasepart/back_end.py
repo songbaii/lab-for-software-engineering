@@ -4,6 +4,7 @@ from models import db
 from sqlalchemy import text
 from recommend import recommend_by_user_id
 from LLM.llm_service.interface import generate_movie_review_interface
+import json
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -585,7 +586,7 @@ def get_record():
     """
     获取评分记录接口
     接受的json格式:{"user_id": "用户账号" number类型}
-    返回的json格式:{"success": "修改结果" boolean类型， "message": "提示信息" string类型， ”records“： "评分记录" list类型，其中其中每一个元素是dict，包含了 movie_name, rating, timestamp, release_year属性}
+    返回的json格式:{"success": "修改结果" boolean类型， "message": "提示信息" string类型， ”records“： "评分记录" list类型，其中其中每一个元素是dict，包含了 movie_name, rating, timestamp属性}
     """
     if not request.is_json:
         return jsonify({
@@ -636,11 +637,31 @@ def get_record():
         UserJudge.timestamp,
         Movie.movie_name,
         Movie.release_year
-    ).join(
-        Movie, UserJudge.movie_id == Movie.movie_id
-    ).filter(
-        UserJudge.user_id == user_id
-    ).all()
+    ).join(Movie, UserJudge.movie_id == Movie.movie_id).filter(UserJudge.user_id == user_id).all()
+    if not results:
+        return jsonify({
+            'success': True,
+            'message': "先前没有评分过电影"
+        })
+    else:
+        json_list = [
+            {
+                'rating': float(row.rating),
+                'timestamp': row.timestamp.isoformat(),
+                'movie_name': row.movie_name,
+                'release_year': row.release_year
+            }
+            for row in results
+        ]
+        # 转为 JSON 字符串
+
+        json_str = json.dumps(json_list, ensure_ascii=False, indent=2)
+        return jsonify({
+            'success': True,
+            'message': "成功返回用户评分记录",
+            'records': json_str
+        })
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

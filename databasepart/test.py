@@ -22,6 +22,7 @@ def client():
 class TestUser:
 
     def test_login_no_data(self, client):
+        # 测试json格式错误
         response = client.post('/api/login', json=None)
         print(f"Response status: {response.status_code}")
         print(f"Response JSON: {response.get_json()}")
@@ -29,6 +30,7 @@ class TestUser:
         assert response.get_json()['success'] == False
 
     def test_login_no_dict(self, client):
+        # 测试不符合格式
         response = client.post('/api/login', json=123)
         print(f"Response status: {response.status_code}")
         print(f"Response JSON: {response.get_json()}")
@@ -105,14 +107,13 @@ class TestUser:
         db.session.commit()
 
     def test_login_wrong_password(self, client):
+        # 测试错误的登录密码
         test_user = User(user_name='123', password='testpass')
         db.session.add(test_user)
         db.session.commit()
         test_id = test_user.user_id
-
-        """测试用户不存在的情况"""
         data = {
-            'user_id': test_id,  # 不存在的用户ID
+            'user_id': test_id,
             'password': 'wrong password'
         }
 
@@ -125,9 +126,9 @@ class TestUser:
         db.session.commit()
 
     def test_create_new_user(self, client):
-        """测试创建用户"""
+        # 测试注册用户
         data = {
-            'user_name': 'test1',  # 不存在的用户ID
+            'user_name': 'test1',
             'password': 'test password'
         }
 
@@ -162,6 +163,9 @@ class TestUser:
         print(f"Response JSON: {response.get_json()}")
         assert response.status_code == 200
         assert response.get_json()['success'] == True
+
+    def test_get_record(self, client):
+
 
 class TestRating:
     def test_rating_add_none(self, client):
