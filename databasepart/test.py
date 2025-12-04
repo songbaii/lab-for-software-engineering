@@ -149,7 +149,7 @@ class TestUser:
     def test_change_password(self, client):
         """测试修改密码"""
         data = {
-            'user_name': 'test1',  # 不存在的用户ID
+            'user_name': 'test1',
             'password': 'test password'
         }
         response = client.post('/api/register', json=data)
@@ -160,7 +160,6 @@ class TestUser:
         test_user = User.query.filter_by(user_name='test1').first()
         change_password_date = {
             'user_id': test_user.user_id,
-            'old_password':  'test password',
             'new_password': 'new test password'
         }
         response = client.post('/api/change_password', json=change_password_date)
@@ -168,13 +167,37 @@ class TestUser:
         print(f"Response JSON: {response.get_json()}")
         assert response.status_code == 200
         assert response.get_json()['success'] == True
+        db.session.delete(test_user)
+        db.session.commit()
 
-    def test_get_record(self, client):
+    def test_get_no_record(self, client):
         # 测试获取评分记录
         data = {
             'user_name': 'test1',  # 不存在的用户ID
             'password': 'test password'
         }
+        response = client.post('/api/register', json=data)
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 201
+        assert response.get_json()['success'] == True
+        test_user = User.query.filter_by(user_name='test1').first()
+        response = client.post('/api/get_record', json={'user_id': test_user.user_id})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 200
+        assert response.get_json()['success'] == True
+        db.session.delete(test_user)
+        db.session.commit()
+
+    def test_get_record_success(self, client):
+        test_user = UserJudge.query.first()
+        response = client.post('/api/get_record', json={'user_id': test_user.user_id})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 200
+        assert response.get_json()['success'] == True
+
 
 class TestRating:
     def test_rating_add_none(self, client):

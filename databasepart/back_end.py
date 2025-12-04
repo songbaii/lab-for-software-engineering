@@ -581,7 +581,7 @@ def change_password():# check
         print(f"发生错误{e}")
         return jsonify({'success': False, 'message': "系统错误"}), 500
 
-@app.route('/api/get_record', methods=['GET'])
+@app.route('/api/get_record', methods=['POST'])
 def get_record():
     """
     获取评分记录接口
@@ -635,32 +635,33 @@ def get_record():
     results = db.session.query(
         UserJudge.rating,
         UserJudge.timestamp,
-        Movie.movie_name,
-        Movie.release_year
+        UserJudge.movie_id,
+        Movie.movie_name
     ).join(Movie, UserJudge.movie_id == Movie.movie_id).filter(UserJudge.user_id == user_id).all()
     if not results:
         return jsonify({
             'success': True,
-            'message': "先前没有评分过电影"
-        })
+            'message': "先前没有评分过电影",
+            'records': []
+        }), 200
     else:
         json_list = [
             {
                 'rating': float(row.rating),
                 'timestamp': row.timestamp.isoformat(),
                 'movie_name': row.movie_name,
-                'release_year': row.release_year
+                'movie_id': row.movie_id
             }
             for row in results
         ]
         # 转为 JSON 字符串
 
-        json_str = json.dumps(json_list, ensure_ascii=False, indent=2)
+        json_str = json.dumps(json_list, ensure_ascii=False)
         return jsonify({
             'success': True,
             'message': "成功返回用户评分记录",
             'records': json_str
-        })
+        }), 200
 
 
 if __name__ == '__main__':
