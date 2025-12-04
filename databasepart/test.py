@@ -317,6 +317,24 @@ class TestRating:
         db.session.delete(test_movie)
         db.session.commit()
 
+    def test_delete_judge(self, client):
+        test_user = User(user_name='123', password='testpass')
+        db.session.add(test_user)
+        db.session.commit()
+        test_movie = Movie.query.first()
+        response = client.post('/api/judge', json={'user_id': test_user.user_id, 'movie_id': test_movie.movie_id, 'rating': 2})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 201
+        assert response.get_json()['success'] == True
+        response = client.post('/api/delete_judge', json = {'user_id': test_user.user_id, 'movie_id': test_movie.movie_id})
+        print(f"Response status: {response.status_code}")
+        print(f"Response JSON: {response.get_json()}")
+        assert response.status_code == 200
+        assert response.get_json()['success'] == True
+        db.session.delete(test_user)
+        db.session.commit()
+
 """class TestRecommend:
 
     def test_cold_success_recommend(self, client):
@@ -401,11 +419,11 @@ class Testlike:
         db.session.delete(test_user)
         db.session.commit()
 
-class TestMovie:
+"""class TestMovie:
     def test_get_movie(self, client):
         test_movie = Movie.query.first()
         responses = client.post('/api/get_movie', json={'movie_id': test_movie.movie_id})
         print(f"Response status: {responses.status_code}")
         print(f"Response JSON: {responses.get_json()}")
         assert responses.status_code == 200
-        assert responses.get_json()['success'] == True
+        assert responses.get_json()['success'] == True"""

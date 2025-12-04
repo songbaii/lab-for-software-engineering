@@ -828,7 +828,7 @@ def delete_judge():
         return jsonify({
             'success': True,
             'message': "删除记录成功"
-        })
+        }), 200
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
