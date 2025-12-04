@@ -586,7 +586,7 @@ def get_record():
     """
     获取评分记录接口
     接受的json格式:{"user_id": "用户账号" number类型}
-    返回的json格式:{"success": "修改结果" boolean类型， "message": "提示信息" string类型， ”records“： "评分记录" list类型，其中其中每一个元素是dict，包含了 movie_name, rating, timestamp属性}
+    返回的json格式:{"success": "修改结果" boolean类型， "message": "提示信息" string类型， ”records“： "评分记录" list类型，其中其中每一个元素是dict，包含了 movie_name, rating, timestamp, movie_id属性}
     """
     if not request.is_json:
         return jsonify({
