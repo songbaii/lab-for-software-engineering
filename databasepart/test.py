@@ -80,7 +80,7 @@ class TestUser:
         response = client.post('/api/login', json=data)
         print(f"Response status: {response.status_code}")
         print(f"Response JSON: {response.get_json()}")
-        assert response.status_code == 401
+        assert response.status_code == 400
         assert response.get_json()['success'] == False
 
     def test_successful_login(self, client):
@@ -119,7 +119,7 @@ class TestUser:
         response = client.post('/api/login', json=data)
         print(f"Response status: {response.status_code}")
         print(f"Response JSON: {response.get_json()}")
-        assert response.status_code == 401
+        assert response.status_code == 400
         assert response.get_json()['success'] == False
         db.session.delete(test_user)
         db.session.commit()
@@ -203,7 +203,7 @@ class TestRating:
         response = client.post('/api/judge', json={'user_id': test_user_id, 'movie_id': 2, 'rating': 3})
         print(f"Response status: {response.status_code}")
         print(f"Response JSON: {response.get_json()}")
-        assert response.status_code == 401
+        assert response.status_code == 400
         assert response.get_json()['success'] == False
 
     def test_rating_add_wrong_rating(self, client):
@@ -218,7 +218,7 @@ class TestRating:
         response = client.post('/api/judge', json={'user_id': test_user_id, 'movie_id': test_movie_id, 'rating': 2.1})
         print(f"Response status: {response.status_code}")
         print(f"Response JSON: {response.get_json()}")
-        assert response.status_code == 401
+        assert response.status_code == 400
         assert response.get_json()['success'] == False
         db.session.delete(test_user)
         db.session.delete(test_movie)
@@ -236,7 +236,7 @@ class TestRating:
         response = client.post('/api/judge', json={'user_id': test_user_id, 'movie_id': test_movie_id, 'rating': -1})
         print(f"Response status: {response.status_code}")
         print(f"Response JSON: {response.get_json()}")
-        assert response.status_code == 401
+        assert response.status_code == 400
         assert response.get_json()['success'] == False
         db.session.delete(test_user)
         db.session.delete(test_movie)

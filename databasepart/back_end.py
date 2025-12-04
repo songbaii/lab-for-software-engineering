@@ -15,7 +15,7 @@ db.init_app(app)
 from models import Movie, UserJudge, UserFavoriteGenres, User, GenreTable, MovieStats
 
 @app.route('/api/health', methods=['GET'])
-def health_check():# 
+def health_check():# check
     """
     一个用于检查服务器状态的接口
     """
@@ -40,7 +40,7 @@ def health_check():#
         }), 500
 
 @app.route('/api/login', methods=['POST'])# already check
-def login():
+def login():# check
     """
     用户登录接口
     接收JSON格式: {"user_id": "用户账号" number类型, "password": "密码" string类型}
@@ -53,16 +53,22 @@ def login():
         if not request.is_json:
             return jsonify({
                 'success': False,
-                'message': "请求数据格式错误"
+                'message': "数据非json错误"
             }), 400
 
         data = request.get_json()
 
-        # 对应根本不存在这个属性的情况
-        if not isinstance(data, dict) or 'user_id' not in data or 'password' not in data:
+        # 对应不是字典的情况
+        if not isinstance(data, dict):
             return jsonify({
                 'success': False,
-                'message': "请求数据格式错误"
+                'message': "数据非字典错误"
+            }), 400
+
+        if 'user_id' not in data or 'password' not in data:
+            return jsonify({
+                'success': False,
+                'message': "属性缺失"
             }), 400
 
         # 去除空格并检查空值
@@ -91,7 +97,7 @@ def login():
             return jsonify({
                 'success': False,
                 'message': "不存在该用户"
-            }), 401
+            }), 400
 
         # 验证密码
         if user.check_password(password):
@@ -103,13 +109,13 @@ def login():
             return jsonify({
                 'success': False,
                 "message": "密码错误"
-            }), 401
+            }), 400
     except Exception as e:
         print(f"发生错误: {e}")
         return jsonify({'success': False, 'message': "系统错误"}), 500
 
 @app.route('/api/register', methods=['POST'])# check
-def register():
+def register():# check
     """
     用户注册接口
     接收JSON格式: {"user_name": "用户账号" string类型, "password": "密码" string类型}
@@ -119,18 +125,21 @@ def register():
         if not request.is_json:
             return jsonify({
                 'success': False,
-                'message': "请求数据格式错误",
-                'user_id': -1
+                'message': "数据非json错误"
             }), 400
 
         data = request.get_json()
 
-        # 对应根本不存在这个属性的情况
-        if not isinstance(data, dict) or 'user_name' not in data or 'password' not in data:
+        if not isinstance(data, dict):
             return jsonify({
                 'success': False,
-                'message': "请求数据格式错误",
-                'user_id': -1
+                'message': "数据非字典错误"
+            }), 400
+
+        if 'user_name' not in data or 'password' not in data:
+            return jsonify({
+                'success': False,
+                'message': "属性缺失"
             }), 400
 
         user_name = str(data.get('user_name')).strip()
@@ -140,8 +149,7 @@ def register():
         if not user_name or not password:
             return jsonify({
                 'success': False,
-                'message': '用户名和密码都不能为空',
-                'user_id': -1
+                'message': '用户名和密码都不能为空'
             }), 400
 
         # 创建新用户
@@ -159,7 +167,7 @@ def register():
         return jsonify({'success': False, 'message': "系统错误"}), 500
 
 @app.route('/api/judge', methods=['POST'])
-def judge():
+def judge():# check
     """
     用户评分接口
     接受的JSON格式: {"user_id": "用户账号" number类型， "movie_id": "电影id" number类型， "rating": "用户评分" number类型}
@@ -169,16 +177,22 @@ def judge():
         if not request.is_json:
             return jsonify({
                 'success': False,
-                'message': "评分数据格式错误"
+                'message': "数据非json错误"
             }), 400
 
         data = request.get_json()
 
-        # 对应根本不存在这个属性的情况
-        if not isinstance(data, dict) or 'user_id' not in data or 'movie_id' not in data or 'rating' not in data:
+        if not isinstance(data, dict):
             return jsonify({
                 'success': False,
-                'message': "评分属性缺失"
+                'message': "数据非字典错误"
+            }), 400
+
+        # 对应根本不存在这个属性的情况
+        if 'user_id' not in data or 'movie_id' not in data or 'rating' not in data:
+            return jsonify({
+                'success': False,
+                'message': "属性缺失"
             }), 400
 
         user_id = str(data.get('user_id')).strip()
@@ -222,19 +236,19 @@ def judge():
             return jsonify({
                 'success': False,
                 'message': "不存在该用户"
-            }), 401
+            }), 400
 
         if not movie:
             return jsonify({
                 'success': False,
                 'message': "不存在这一部电影"
-            }), 401
+            }), 400
 
         if not ((rating > 0) and (rating <= 5) and (rating * 2 == int(rating * 2))):
             return jsonify({
                 'success': False,
                 'message': "电影的评分不符合评分要求"
-            }), 401
+            }), 400
         else:
             new_user_judge = UserJudge(user_id=user_id, movie_id=movie_id, rating=rating)
             db.session.merge(new_user_judge)
@@ -259,247 +273,312 @@ def judge():
         return jsonify({'success': False, 'message': "系统错误"}), 500
 
 @app.route('/api/recommend', methods=['POST'])
-def recommend():
+def recommend():# check
     """
     推荐接口
     接受的JSON格式: {"user_id": "用户账号" number类型, "record_times": "先前已经推荐过的次数(第一次为0)" number类型}
     返回的JSON格式: {"success": "推荐结果" boolean类型， "message": "提示信息" string类型, "recommend_movies": "推荐电影信息" 以数组的形式进行传输，每一个都具有"movie_id", "movie_name", "release_year", "avg_rating", "vote_count", "short_comment"属性}
     """
-    if not request.is_json:
-        return jsonify({
-            'success': False,
-            'message': "请求电影推荐数据格式错误"
-        }), 400
-
-    data = request.get_json()
-
-    # 对应根本不存在这个属性的情况
-    if not isinstance(data, dict) or 'user_id' not in data or 'record_times' not in data:
-        return jsonify({
-            'success': False,
-            'message': "请求电影推荐属性缺失"
-        }), 400
-
-    user_id = str(data.get('user_id')).strip()
-    record_times = str(data.get('record_times')).strip()
-
-    if not user_id :
-        return jsonify({
-            'success': False,
-            'message': '用户id不能为空',
-        }), 400
-
-    if not record_times:
-        return jsonify({
-            'success': False,
-            'message': '用户刷新次数不能为空'
-        })
-
     try:
-        user_id = int(user_id)
-    except Exception:
+        if not request.is_json:
+            return jsonify({
+                'success': False,
+                'message': "数据非json错误"
+            }), 400
+
+        data = request.get_json()
+
+        if not isinstance(data, dict):
+            return jsonify({
+                'success': False,
+                'message': "数据非字典错误"
+            }), 400
+
+        # 对应根本不存在这个属性的情况
+        if 'user_id' not in data or 'record_times' not in data:
+            return jsonify({
+                'success': False,
+                'message': "属性缺失"
+            }), 400
+
+        user_id = str(data.get('user_id')).strip()
+        record_times = str(data.get('record_times')).strip()
+
+        if not user_id :
+            return jsonify({
+                'success': False,
+                'message': '用户id不能为空',
+            }), 400
+
+        if not record_times:
+            return jsonify({
+                'success': False,
+                'message': '用户刷新次数不能为空'
+            }), 400
+
+        try:
+            user_id = int(user_id)
+        except Exception:
+            return jsonify({
+                'success': False,
+                'message': "用户id输入存在问题"
+            }), 400
+
+        try:
+            record_times = int(record_times)
+        except Exception:
+            return jsonify({
+                'success': False,
+                'message': "次数输入存在问题"
+            }), 400
+
+        user = User.query.filter_by(user_id=user_id).first()
+
+        if not user:
+            return jsonify({
+                'success': False,
+                'message': "不存在该用户"
+            }), 400
+
+        recommend_movies = recommend_by_user_id(user_id, top_k=20, min_sim=0.01, recent_ratings_limit=20, random_factor=0.3)
+
+        recommend_movies = recommend_movies[(record_times * 4) % 20: (record_times + 1) * 4 % 20]
+        for recommend_movie in recommend_movies:
+            del recommend_movie['score']
+            recommend_movie['short_comment'] = generate_movie_review_interface({'movie_title' :recommend_movie['movie_name']})['data']['generated_review']
+
         return jsonify({
-            'success': False,
-            'message': "用户id输入存在问题"
-        }), 400
-
-    try:
-        record_times = int(record_times)
-    except Exception:
-        return jsonify({
-            'success': False,
-            'message': "次数输入存在问题"
-        }), 400
-
-    user = User.query.filter_by(user_id=user_id).first()
-
-    if not user:
-        return jsonify({
-            'success': False,
-            'message': "不存在该用户"
-        }), 401
-
-    recommend_movies = recommend_by_user_id(user_id, top_k=20, min_sim=0.01, recent_ratings_limit=20, random_factor=0.3)
-
-    recommend_movies = recommend_movies[(record_times * 4) % 20: (record_times + 1) * 4 % 20]
-    for recommend_movie in recommend_movies:
-        del recommend_movie['score']
-        recommend_movie['short_comment'] = generate_movie_review_interface({'movie_title' :recommend_movie['movie_name']})['data']['generated_review']
-
-    return jsonify({
-        'success': True,
-        'message': "成功推荐电影!!!",
-        'recommend_movies': recommend_movies
-    }), 200
+            'success': True,
+            'message': "成功推荐电影!!!",
+            'recommend_movies': recommend_movies
+        }), 200
+    except Exception as e:
+        print(f"发生错误{e}")
+        return jsonify({'success': False, 'message': "系统错误"}), 500
 
 @app.route('/api/like_query', methods=['POST'])
-def like_query():
-    '''
+def like_query():# check
+    """
     用户喜好查询接口
     接受的json格式:{"user_id": "用户账号" number类型}
     返回的json格式:{"success": "查询结果" boolean类型, "message": "提示信息" string类型, "like": "用户喜好" 数组类型,其中应当是电影类别名称的数组}
-    '''
-    if not request.is_json:
-        return jsonify({
-            'success': False,
-            'message': "用户喜好查询数据格式错误"
-        }), 400
-    data = request.get_json()
-    # 对应根本不存在这个属性的情况
-    if not isinstance(data, dict) or 'user_id' not in data:
-        return jsonify({
-            'success': False,
-            'message': "用户喜好查询属性缺失"
-        }), 400
-
-    user_id = str(data.get('user_id')).strip()
-
-    if not user_id:
-        return jsonify({
-            'success': False,
-            'message': '用户id不能为空',
-        }), 400
-
+    """
     try:
-        user_id = int(user_id)
-    except Exception:
-        return jsonify({
-            'success': False,
-            'message': "用户id输入存在问题"
-        }), 400
+        if not request.is_json:
+            return jsonify({
+                'success': False,
+                'message': "数据非json错误"
+            }), 400
 
-    user = User.query.filter_by(user_id=user_id).first()
+        data = request.get_json()
 
-    if not user:
-        return jsonify({
-            'success': False,
-            'message': "不存在该用户"
-        }), 401
+        if not isinstance(data, dict):
+            return jsonify({
+                'success': False,
+                'message': "数据非字典错误"
+            }), 400
 
-    likes = UserFavoriteGenres.query.filter_by(user_id=user.user_id).all()
-    if not likes:
-        return jsonify({
-            'success': True,
-            'message': "当前还没有喜好",
-            'like': []
-        }), 200
-    else:
-        like_list = []
-        for like_type in likes:
-            like_genre = GenreTable.query.filter_by(genre_id=like_type.genre_id).first()
-            like_list.append(like_genre.genre_name)
-        return jsonify({
-            'success': True,
-            'message': "成功查询到先前选择的电影喜好",
-            'like': like_list
-        }), 200
+        # 对应根本不存在这个属性的情况
+        if 'user_id' not in data:
+            return jsonify({
+                'success': False,
+                'message': "属性缺失"
+            }), 400
+
+        user_id = str(data.get('user_id')).strip()
+
+        if not user_id:
+            return jsonify({
+                'success': False,
+                'message': '用户id不能为空',
+            }), 400
+
+        try:
+            user_id = int(user_id)
+        except Exception:
+            return jsonify({
+                'success': False,
+                'message': "用户id输入存在问题"
+            }), 400
+
+        user = User.query.filter_by(user_id=user_id).first()
+
+        if not user:
+            return jsonify({
+                'success': False,
+                'message': "不存在该用户"
+            }), 400
+
+        likes = UserFavoriteGenres.query.filter_by(user_id=user.user_id).all()
+        if not likes:
+            return jsonify({
+                'success': True,
+                'message': "当前还没有喜好",
+                'like': []
+            }), 200
+        else:
+            like_list = []
+            for like_type in likes:
+                like_genre = GenreTable.query.filter_by(genre_id=like_type.genre_id).first()
+                like_list.append(like_genre.genre_name)
+            return jsonify({
+                'success': True,
+                'message': "成功查询到先前选择的电影喜好",
+                'like': like_list
+            }), 200
+    except Exception as e:
+        print(f"发生错误{e}")
+        return jsonify({'success': False, 'message': "系统错误"}), 500
+
 
 @app.route('/api/like', methods=['POST'])
-def like():
-    '''
+def like():# check
+    """
     用户喜好修改接口
     接受的json格式:{"user_id": "用户账号" number类型, "like": "用户喜好" 数组类型，其中应当是电影类别名称的数组}
     返回的json格式:{"success": "加载结果" boolean类型， "message": "提示信息" string类型}
-    '''
-    if not request.is_json:
-        return jsonify({
-            'success': False,
-            'message': "用户喜好数据格式错误"
-        }), 400
-    data = request.get_json()
-
-    # 对应根本不存在这个属性的情况
-    if not isinstance(data, dict) or 'user_id' not in data or 'like' not in data:
-        return jsonify({
-            'success': False,
-            'message': "用户喜好修改属性缺失"
-        }), 400
-
-    # 这里是已经登录后的跳转，所以不需要对用户的id进行检查
-    user_id = int(str(data.get('user_id')).strip())
-
-    likes = data.get('like')
-    if len(likes) == 0:
-        return jsonify({
-            'success': True,
-            'message': "用户暂时没有喜欢的电影"
-        }), 200
-
-    UserFavoriteGenres.query.filter_by(user_id=user_id).delete()
-    for like in likes:
-        genre_record = GenreTable.query.filter_by(genre_name = like).first()
-        if not genre_record:
+    """
+    try:
+        if not request.is_json:
             return jsonify({
                 'success': False,
-                'message': "传输的类别错误，不存在这个类别！！！"
+                'message': "数据非json错误"
             }), 400
-        genre_id = genre_record.genre_id
-        new_user_fav = UserFavoriteGenres(genre_id=genre_id, user_id=user_id, preference_score=1)
-        db.session.add(new_user_fav)
-    db.session.commit()
-    return jsonify({
-        'success': True,
-        'message': "类别已经成功加载"
-    }), 201
+
+        data = request.get_json()
+
+        if not isinstance(data, dict):
+            return jsonify({
+                'success': False,
+                'message': "数据非字典错误"
+            }), 400
+
+        # 对应根本不存在这个属性的情况
+        if not isinstance(data, dict) or 'user_id' not in data or 'like' not in data:
+            return jsonify({
+                'success': False,
+                'message': "属性缺失"
+            }), 400
+
+        user_id = str(data.get('user_id')).strip()
+
+        if not user_id:
+            return jsonify({
+                'success': False,
+                'message': '用户id不能为空',
+            }), 400
+
+        try:
+            user_id = int(user_id)
+        except Exception:
+            return jsonify({
+                'success': False,
+                'message': "用户id输入存在问题"
+            }), 400
+
+        user = User.query.filter_by(user_id=user_id).first()
+
+        if not user:
+            return jsonify({
+                'success': False,
+                'message': "不存在该用户"
+            }), 400
+
+        UserFavoriteGenres.query.filter_by(user_id=user_id).delete()
+        likes = data.get('like')
+        if len(likes) == 0:
+            return jsonify({
+                'success': True,
+                'message': "用户暂时没有喜欢的电影"
+            }), 200
+
+        for like in likes:
+            genre_record = GenreTable.query.filter_by(genre_name = like).first()
+            if not genre_record:
+                return jsonify({
+                    'success': False,
+                    'message': "传输的类别错误，不存在这个类别！！！"
+                }), 400
+            genre_id = genre_record.genre_id
+            new_user_fav = UserFavoriteGenres(genre_id=genre_id, user_id=user_id, preference_score=1)
+            db.session.add(new_user_fav)
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': "类别已经成功加载"
+        }), 201
+    except Exception as e:
+        print(f"发生错误{e}")
+        return jsonify({'success': False, 'message': "系统错误"}), 500
 
 @app.route('/api/change_password', methods=['POST'])
-def change_password():
-    '''
+def change_password():# check
+    """
     修改密码接口
     接受的json格式:{"user_id": "用户账号" number类型, "new_password": "新密码" string类型}
     返回的json格式:{"success": "修改结果" boolean类型， "message": "提示信息" string类型}
-    '''
-    if not request.is_json:
-        return jsonify({
-            'success': False,
-            'message': "用户喜好数据格式错误"
-        }), 400
-
-    data = request.get_json()
-
-    if not isinstance(data, dict) or 'user_id' not in data or 'new_password' not in data:
-        return jsonify({
-            'success': False,
-            'message': "修改密码所需数据属性缺失"
-        }), 400
-
-    user_id = str(data.get('user_id')).strip()
-    new_password = str(data.get('new_password')).strip()
-
-    if not user_id:
-        return jsonify({
-            'success': False,
-            'message': '用户id不能为空',
-        }), 400
-
-    if not new_password:
-        return jsonify({
-            'success': False,
-            'message': '新密码不能为空'
-        }), 400
-
+    """
     try:
-        user_id = int(user_id)
-    except Exception:
+        if not request.is_json:
+            return jsonify({
+                'success': False,
+                'message': "数据非json错误"
+            }), 400
+
+        data = request.get_json()
+
+        if not isinstance(data, dict):
+            return jsonify({
+                'success': False,
+                'message': "数据非字典错误"
+            }), 400
+
+        if 'user_id' not in data or 'new_password' not in data:
+            return jsonify({
+                'success': False,
+                'message': "属性缺失"
+            }), 400
+
+        user_id = str(data.get('user_id')).strip()
+        new_password = str(data.get('new_password')).strip()
+
+        if not user_id:
+            return jsonify({
+                'success': False,
+                'message': '用户id不能为空',
+            }), 400
+
+        if not new_password:
+            return jsonify({
+                'success': False,
+                'message': '新密码不能为空'
+            }), 400
+
+        try:
+            user_id = int(user_id)
+        except Exception:
+            return jsonify({
+                'success': False,
+                'message': "用户id输入存在问题"
+            }), 400
+
+        user = User.query.filter_by(user_id=user_id).first()
+
+        if not user:
+            return jsonify({
+                'success': False,
+                'message': "不存在该用户"
+            }), 400
+
+        user.password = new_password
+        db.session.commit()
         return jsonify({
-            'success': False,
-            'message': "用户id输入存在问题"
-        }), 400
-
-    user = User.query.filter_by(user_id=user_id).first()
-
-    if not user:
-        return jsonify({
-            'success': False,
-            'message': "不存在该用户"
-        }), 401
-
-    user.password = new_password
-    db.session.commit()
-    return jsonify({
-        'success': True,
-        'message': "成功修改密码"
-    }), 200
+            'success': True,
+            'message': "成功修改密码"
+        }), 200
+    except Exception as e:
+        print(f"发生错误{e}")
+        return jsonify({'success': False, 'message': "系统错误"}), 500
 
 @app.route('/api/get_record', methods=['GET'])
 def get_record():
@@ -511,12 +590,18 @@ def get_record():
     if not request.is_json:
         return jsonify({
             'success': False,
-            'message': "查询数据格式错误"
+            'message': "数据非json错误"
         }), 400
 
     data = request.get_json()
 
-    if not isinstance(data, dict) or 'user_id' not in data:
+    if not isinstance(data, dict):
+        return jsonify({
+            'success': False,
+            'message': "数据非字典错误"
+        }), 400
+    
+    if 'user_id' not in data:
         return jsonify({
             'success': False,
             'message': "修改密码所需数据属性缺失"
@@ -544,7 +629,7 @@ def get_record():
         return jsonify({
             'success': False,
             'message': "不存在该用户"
-        }), 401
+        }), 400
 
     results = db.session.query(
         UserJudge.user_id,
