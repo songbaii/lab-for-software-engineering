@@ -38,6 +38,7 @@ class TestUser:
         assert response.get_json()['success'] == False
 
     def test_login_no_user_id(self, client):
+        # 测试缺失属性
         response = client.post('/api/login', json={'password': 'testpass'})
         print(f"Response status: {response.status_code}")
         print(f"Response JSON: {response.get_json()}")
@@ -45,6 +46,7 @@ class TestUser:
         assert response.get_json()['success'] == False
 
     def test_login_no_password(self, client):
+        # 测试缺失属性
         response = client.post('/api/login', json={'user_id': '123'})
         print(f"Response status: {response.status_code}")
         print(f"Response JSON: {response.get_json()}")
@@ -52,6 +54,7 @@ class TestUser:
         assert response.get_json()['success'] == False
 
     def test_login_all_blank(self, client):
+        # 测试为空
         response = client.post('/api/login', json={'user_id': '   ', 'password': '  '})
         print(f"Response status: {response.status_code}")
         print(f"Response JSON: {response.get_json()}")
@@ -59,6 +62,7 @@ class TestUser:
         assert response.get_json()['success'] == False
 
     def test_login_user_id_type(self, client):
+        # 测试id格式错误
         response = client.post('/api/login', json={'user_id': 'abc', 'password': '123'})
         print(f"Response status: {response.status_code}")
         print(f"Response JSON: {response.get_json()}")
@@ -66,6 +70,7 @@ class TestUser:
         assert response.get_json()['success'] == False
 
     def test_login_user_not_exist(self, client):
+        # 测试用户不存在
         test_user = User(user_name='123', password='testpass')
         db.session.add(test_user)
         db.session.commit()
@@ -73,7 +78,6 @@ class TestUser:
         db.session.delete(test_user)
         db.session.commit()
 
-        """测试用户不存在的情况"""
         data = {
             'user_id': test_id,  # 不存在的用户ID
             'password': 'testpass'
@@ -86,6 +90,7 @@ class TestUser:
         assert response.get_json()['success'] == False
 
     def test_successful_login(self, client):
+        # 测试成功登录
         # 插入测试数据 - user_name是VARCHAR，所以用字符串
         test_user = User(user_name='123', password='testpass')
         db.session.add(test_user)
@@ -165,7 +170,11 @@ class TestUser:
         assert response.get_json()['success'] == True
 
     def test_get_record(self, client):
-
+        # 测试获取评分记录
+        data = {
+            'user_name': 'test1',  # 不存在的用户ID
+            'password': 'test password'
+        }
 
 class TestRating:
     def test_rating_add_none(self, client):
@@ -316,6 +325,7 @@ class TestRating:
 class Testlike:
 
     def test_like_no_like(self, client):
+        # 测试没有爱好的情况
         test_user = User(user_name='123', password='123')
         db.session.add(test_user)
         db.session.commit()
@@ -330,6 +340,7 @@ class Testlike:
         db.session.commit()
 
     def test_like_add_like(self, client):
+        # 测试增删改查爱好的情况
         test_user = User(user_name='123', password='123')
         db.session.add(test_user)
         db.session.commit()
