@@ -7,3 +7,4 @@
 5. 运行add_index.sql文件实现索引插入和数据初始化
 6. 运行databasepart/compute_item_sim.py计算相似度矩阵，然后可以使用recommend.recommend_by_user_id函数进行推荐
 7. 运行back_end.py启动后端服务
+8. 在命令行进入项目的Frontend/SElab下执行命令npm run dev。即可查看到前端的端口，使用ctrl+左键点击后即可开始使用
