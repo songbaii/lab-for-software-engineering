@@ -5,6 +5,106 @@ const userPreferences = new Map()
 // 初始化一些测试用户的偏好数据
 userPreferences.set(123456, ['Action', 'Drama', 'Sci-Fi'])
 userPreferences.set(350234, ['Comedy', 'Romance'])
+// 模拟推荐电影数据
+const mockMovies = [
+    {
+        movie_id: 1,
+        movie_name: "肖申克的救赎",
+        release_year: 1994,
+        avg_rating: 4.3,
+        vote_count: 2500000,
+        short_comment: "希望让人自由，这是一部关于友谊和救赎的经典之作。"
+    },
+    {
+        movie_id: 2,
+        movie_name: "教父",
+        release_year: 1972,
+        avg_rating: 4.2,
+        vote_count: 1800000,
+        short_comment: "黑帮电影的巅峰之作，马龙·白兰度的表演堪称传奇。"
+    },
+    {
+        movie_id: 3,
+        movie_name: "黑暗骑士",
+        release_year: 2008,
+        avg_rating: 4.0,
+        vote_count: 2600000,
+        short_comment: "希斯·莱杰的小丑表演让这部超级英雄电影成为艺术。"
+    },
+    {
+        movie_id: 4,
+        movie_name: "阿甘正传",
+        release_year: 1994,
+        avg_rating: 3.8,
+        vote_count: 2000000,
+        short_comment: "生活就像一盒巧克力，你永远不知道下一颗是什么味道。"
+    },
+    {
+        movie_id: 5,
+        movie_name: "指环王：王者归来",
+        release_year: 2003,
+        avg_rating: 3.9,
+        vote_count: 1800000,
+        short_comment: "史诗奇幻的终极篇章，中土世界的完美收官。"
+    },
+    {
+        movie_id: 6,
+        movie_name: "泰坦尼克号",
+        release_year: 1997,
+        avg_rating: 2.9,
+        vote_count: 1200000,
+        short_comment: "跨越阶级的爱情故事，永恒的经典浪漫。"
+    },
+    {
+        movie_id: 7,
+        movie_name: "盗梦空间",
+        release_year: 2010,
+        avg_rating: 3.8,
+        vote_count: 2200000,
+        short_comment: "诺兰的梦境迷宫，颠覆想象的科幻巨作。"
+    },
+    {
+        movie_id: 8,
+        movie_name: "星际穿越",
+        release_year: 2014,
+        avg_rating: 3.6,
+        vote_count: 1700000,
+        short_comment: "爱与物理的完美结合，震撼的宇宙探索之旅。"
+    },
+    {
+        movie_id: 9,
+        movie_name: "霸王别姬",
+        release_year: 1993,
+        avg_rating: 4.0,
+        vote_count: 1500000,
+        short_comment: "戏如人生，人生如戏，中国电影的巅峰之作。"
+    },
+    {
+        movie_id: 10,
+        movie_name: "这个杀手不太冷",
+        release_year: 1994,
+        avg_rating: 4.0,
+        vote_count: 1900000,
+        short_comment: "大叔与萝莉的温情故事，让·雷诺的经典角色。"
+    },
+    {
+        movie_id: 11,
+        movie_name: "辛德勒的名单",
+        release_year: 1993,
+        avg_rating: 4.0,
+        vote_count: 1300000,
+        short_comment: "黑白影像中的历史伤痛，人性的光辉与黑暗。"
+    },
+    {
+        movie_id: 12,
+        movie_name: "千与千寻",
+        release_year: 2001,
+        avg_rating: 4.0,
+        vote_count: 1600000,
+        short_comment: "宫崎骏的奇幻世界，成长与勇气的美丽寓言。"
+    }
+]
+
 export const handlers = [
     // login handler
     //  POST方法，发送json如下：
@@ -89,106 +189,6 @@ export const handlers = [
                 movies: []
             })
         }
-
-        // 模拟推荐电影数据
-        const mockMovies = [
-            {
-                movie_id: 1,
-                movie_name: "肖申克的救赎",
-                release_year: 1994,
-                avg_rating: 4.3,
-                vote_count: 2500000,
-                short_comment: "希望让人自由，这是一部关于友谊和救赎的经典之作。"
-            },
-            {
-                movie_id: 2,
-                movie_name: "教父",
-                release_year: 1972,
-                avg_rating: 4.2,
-                vote_count: 1800000,
-                short_comment: "黑帮电影的巅峰之作，马龙·白兰度的表演堪称传奇。"
-            },
-            {
-                movie_id: 3,
-                movie_name: "黑暗骑士",
-                release_year: 2008,
-                avg_rating: 4.0,
-                vote_count: 2600000,
-                short_comment: "希斯·莱杰的小丑表演让这部超级英雄电影成为艺术。"
-            },
-            {
-                movie_id: 4,
-                movie_name: "阿甘正传",
-                release_year: 1994,
-                avg_rating: 3.8,
-                vote_count: 2000000,
-                short_comment: "生活就像一盒巧克力，你永远不知道下一颗是什么味道。"
-            },
-            {
-                movie_id: 5,
-                movie_name: "指环王：王者归来",
-                release_year: 2003,
-                avg_rating: 3.9,
-                vote_count: 1800000,
-                short_comment: "史诗奇幻的终极篇章，中土世界的完美收官。"
-            },
-            {
-                movie_id: 6,
-                movie_name: "泰坦尼克号",
-                release_year: 1997,
-                avg_rating: 2.9,
-                vote_count: 1200000,
-                short_comment: "跨越阶级的爱情故事，永恒的经典浪漫。"
-            },
-            {
-                movie_id: 7,
-                movie_name: "盗梦空间",
-                release_year: 2010,
-                avg_rating: 3.8,
-                vote_count: 2200000,
-                short_comment: "诺兰的梦境迷宫，颠覆想象的科幻巨作。"
-            },
-            {
-                movie_id: 8,
-                movie_name: "星际穿越",
-                release_year: 2014,
-                avg_rating: 3.6,
-                vote_count: 1700000,
-                short_comment: "爱与物理的完美结合，震撼的宇宙探索之旅。"
-            },
-            {
-                movie_id: 9,
-                movie_name: "霸王别姬",
-                release_year: 1993,
-                avg_rating: 4.0,
-                vote_count: 1500000,
-                short_comment: "戏如人生，人生如戏，中国电影的巅峰之作。"
-            },
-            {
-                movie_id: 10,
-                movie_name: "这个杀手不太冷",
-                release_year: 1994,
-                avg_rating: 4.0,
-                vote_count: 1900000,
-                short_comment: "大叔与萝莉的温情故事，让·雷诺的经典角色。"
-            },
-            {
-                movie_id: 11,
-                movie_name: "辛德勒的名单",
-                release_year: 1993,
-                avg_rating: 4.0,
-                vote_count: 1300000,
-                short_comment: "黑白影像中的历史伤痛，人性的光辉与黑暗。"
-            },
-            {
-                movie_id: 12,
-                movie_name: "千与千寻",
-                release_year: 2001,
-                avg_rating: 4.0,
-                vote_count: 1600000,
-                short_comment: "宫崎骏的奇幻世界，成长与勇气的美丽寓言。"
-            }
-        ]
 
         // 生成随机数量（0-8）
         const randomCount = Math.floor(Math.random() * 9) // 0-8的随机整数
@@ -340,6 +340,104 @@ export const handlers = [
                 success: true,
                 message: '密码修改成功'
             })
+        }
+    }),
+    // 对应的路由：'/api/get_movie', methods=['POST']， 功能：查询一部电影的具体信息
+    // 接受的json格式:{"movie_id": "电影id" number类型}
+    // 返回的json格式:{"movie_name": "电影名称" string类型, "release_year": "发行年份" number类型, "avg_rating": "平均分" number类型, 
+    // "vote_count": "投票人数" number类型, "short_comment": "AI短评" string类型, "success": "修改结果" boolean类型， "message": "提示信息" string类型}
+    http.post('/api/get_movie', async ({ request }) => {
+        console.log('Mocked get_movie request received')
+        const { movie_id } = await request.json()
+        // 查找电影
+        const movie = mockMovies.find(m => m.movie_id === movie_id)
+        if (movie) {
+            return HttpResponse.json({
+                ...movie,
+                success: true,
+                message: '电影信息获取成功'
+            })
+        } else {
+            return HttpResponse.json({
+                success: false,
+                message: '未找到对应的电影信息'
+            })
+        }
+    }),
+    // 对应的路由：'/api/get_record', methods=['POST']， 功能：对用户的评分记录进行查询。
+    // 接受的json格式:{"user_id": "用户账号" number类型}
+    // 返回的json格式:{"success": "修改结果" boolean类型， "message": "提示信息" string类型， 
+    // "records"： "评分记录" list类型，其中其中每一个元素是dict，包含了 movie_name, rating, timestamp, movie_id属性}
+    http.post('/api/get_record', async ({ request }) => {
+        console.log('Mocked get_record request received')
+        const { user_id } = await request.json()
+        if (typeof user_id !== 'number') {
+            return HttpResponse.json({ 
+                success: false, 
+                message: '用户ID必须是数字类型',
+                records: []
+            })
+        }
+        // 模拟一些评分记录
+        const mockRecords = [
+            {
+                movie_id: 1,
+                movie_name: "肖申克的救赎",
+                rating: 9.0,
+                timestamp: "2023-10-01 12:34:56"
+            },
+            {
+                movie_id: 3,
+                movie_name: "黑暗骑士",
+                rating: 8.5,
+                timestamp: "2023-10-05 15:20:30"
+            },
+            {
+                movie_id: 5,
+                movie_name: "指环王：王者归来",
+                rating: 9.5,
+                timestamp: "2023-10-10 18:45:00"
+            }
+        ]
+        console.log(`Returning ${mockRecords.length} rating records for user ${user_id}`)
+        return HttpResponse.json({
+            success: true,
+            message: '评分记录获取成功',
+            records: mockRecords
+        })
+    }),
+    // 对应路由：'/api/delete_judge', methods=['POST']， gong'neng
+    // 接受的json格式:{"movie_id": "电影id" number类型 "user_id": "用户id" number类型}
+    // 返回的json格式:{"success": "删除结果" boolean类型， "message": "提示信息" string类型}
+    http.post('/api/delete_judge', async ({ request }) => {
+        console.log('Mocked delete_judge request received')
+        const { user_id, movie_id } = await request.json()
+        if (typeof user_id !== 'number') {
+            return HttpResponse.json({ 
+                success: false, 
+                message: '用户ID必须是数字类型'
+            })
+        } else if (typeof movie_id !== 'number') { 
+            return HttpResponse.json({ 
+                success: false,
+                message: '电影ID必须是数字类型'
+            })
+        } else {
+            // 随机返回删除失败/成功
+            const isSuccess = Math.random() < 0.9 // 90%成功率
+            if (isSuccess) {
+                console.log(`Deleted rating for movie ID: ${movie_id} by user ID: ${user_id}`)
+                return HttpResponse.json({
+                    success: true,
+                    message: '评分记录删除成功'
+                })
+            } else {
+                console.log(`Failed to delete rating for movie ID: ${movie_id} by user ID: ${user_id}`)
+                return HttpResponse.json({
+                    success: false,
+                    message: '评分记录删除失败，请稍后重试'
+                })
+            }
         }
     })
 ]

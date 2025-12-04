@@ -30,6 +30,17 @@
                 </svg>
                 修改密码
               </button>
+
+              <button class="dropdown-item" @click="showRatingRecordsModal = true; showUserMenu = false; fetchRatingRecords()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14,2 14,8 20,8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10,9 9,9 8,9"></polyline>
+                </svg>
+                评分记录
+              </button>
               
               <div class="dropdown-divider"></div>
               
@@ -270,6 +281,155 @@
         </div>
       </div>
     </div>
+    <!-- 在模态框部分添加评分记录模态框 -->
+    <div v-if="showRatingRecordsModal" class="modal-overlay" @click="handleRatingRecordsModalClose">
+      <div class="modal-content rating-records-modal" @click.stop>
+        <button class="modal-close" @click="showRatingRecordsModal = false">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        
+        <div class="modal-header">
+          <h2>我的评分记录</h2>
+          <p class="records-subtitle">共 {{ ratingRecords.length }} 条评分记录</p>
+        </div>
+        
+        <div class="modal-body">
+          <!-- 加载状态 -->
+          <div v-if="isLoadingRecords" class="loading-container">
+            <div class="loading-spinner">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M16 12a4 4 0 0 1-4 4"></path>
+              </svg>
+            </div>
+            <p>正在加载评分记录...</p>
+          </div>
+
+          <!-- 错误提示 -->
+          <div v-if="recordsError" class="error-container">
+            <div class="error-message">
+              {{ recordsError }}
+            </div>
+            <button class="retry-btn" @click="fetchRatingRecords">重试</button>
+          </div>
+
+          <!-- 评分记录列表 -->
+          <div v-if="!isLoadingRecords && !recordsError" class="records-list">
+            <div 
+              v-for="record in ratingRecords" 
+              :key="record.movie_id + '_' + record.timestamp"
+              class="record-item"
+              @click="showRecordDetail(record)"
+            >
+              <div class="record-main">
+                <h3 class="record-movie-name">{{ record.movie_name }}</h3>
+                <div class="record-meta">
+                  <span class="record-rating">评分: {{ record.rating }}/5</span>
+                  <span class="record-date">{{ formatDate(record.timestamp) }}</span>
+                </div>
+              </div>
+              <div class="record-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9,18 15,12 9,6"></polyline>
+                </svg>
+              </div>
+            </div>
+
+            <!-- 空状态 -->
+            <div v-if="ratingRecords.length === 0" class="empty-records">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14,2 14,8 20,8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10,9 9,9 8,9"></polyline>
+              </svg>
+              <p>暂无评分记录</p>
+              <p class="empty-subtitle">快去给喜欢的电影评分吧！</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 评分记录详情模态框 -->
+    <div v-if="selectedRecord && selectedRecordMovie" class="modal-overlay" @click="selectedRecord = null">
+      <div class="modal-content" @click.stop>
+        <button class="modal-close" @click="selectedRecord = null">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        
+        <div class="modal-header">
+          <h2>{{ selectedRecordMovie.movie_name }}</h2>
+          <span class="record-detail-badge">已评分: {{ selectedRecord.rating }}/5</span>
+        </div>
+        
+        <div class="modal-body">
+          <div class="movie-short-comment" v-if="selectedRecordMovie.short_comment">
+            <h3>电影简介</h3>
+            <p>{{ selectedRecordMovie.short_comment }}</p>
+          </div>
+          
+          <div class="movie-stats">
+            <div class="stat-item">
+              <span class="stat-label">上映年份:</span>
+              <span class="stat-value">{{ selectedRecordMovie.release_year }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">平均评分:</span>
+              <span class="stat-value">{{ selectedRecordMovie.avg_rating }}/5</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">投票数:</span>
+              <span class="stat-value">{{ selectedRecordMovie.vote_count }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">评分时间:</span>
+              <span class="stat-value">{{ formatDate(selectedRecord.timestamp) }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-rating">
+          <div class="rating-controls">
+            <span class="rating-label">修改评分:</span>
+            <select 
+              class="rating-select"
+              :value="selectedRecord.rating"
+              @change="updateRecordRating(selectedRecord, $event)"
+            >
+              <option v-for="rating in ratingOptions" :key="rating" :value="rating">
+                {{ rating }}
+              </option>
+            </select>
+          </div>
+          <span class="rating-text">
+            当前评分: {{ selectedRecord.rating }}/5
+          </span>
+        </div>
+        <div class="modal-footer">
+          <button 
+            class="delete-btn" 
+            @click="deleteRatingRecord(selectedRecord)"
+            :disabled="isDeletingRecord"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18"></path>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+            {{ isDeletingRecord ? '删除中...' : '删除评分记录' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -317,6 +477,14 @@ const newPassword = ref('');
 const confirmPassword = ref('');
 const passwordError = ref('');
 const isChangingPassword = ref(false);
+
+const showRatingRecordsModal = ref(false);
+const ratingRecords = ref([]);
+const isLoadingRecords = ref(false);
+const recordsError = ref('');
+const selectedRecord = ref(null);
+const selectedRecordMovie = ref(null);
+const isDeletingRecord = ref(false);
 
 // ================== 密码修改相关逻辑 ==================
 
@@ -593,21 +761,197 @@ const handleRatingSelect = async (movie, event) => {
   }
 };
 
-// const rateMovie = (movie, rating) => {
-//   // 更新本地评分状态
-//   userRatings.value[movie.movie_name] = rating;
-  
-//   // 在实际应用中，这里应该发送评分到后端
-//   console.log(`用户 ${userInfo.value.user_id} 对电影 "${movie.movie_name}" 评分: ${rating}`);
-  
-//   // 模拟发送评分到后端
-//   // apiService.post('/api/movies/rate', {
-//   //   user_id: userInfo.value.user_id,
-//   //   movie_name: movie.movie_name,
-//   //   rating: rating
-//   // });
-// };
+// ================== 评分记录相关逻辑 ==================
 
+/**
+ * 获取评分记录
+ */
+const fetchRatingRecords = async () => {
+  if (!userInfo.value.user_id) return;
+  
+  try {
+    isLoadingRecords.value = true;
+    recordsError.value = '';
+    
+    const response = await apiService.post('/api/get_record', {
+      user_id: Number(userInfo.value.user_id)
+    });
+    
+    if (response.success) {
+      ratingRecords.value = response.records || [];
+      console.log('获取评分记录成功:', ratingRecords.value);
+    } else {
+      recordsError.value = response.message || '获取评分记录失败';
+    }
+  } catch (error) {
+    console.error('获取评分记录失败:', error);
+    recordsError.value = '获取评分记录失败，请稍后重试';
+  } finally {
+    isLoadingRecords.value = false;
+  }
+};
+
+/**
+ * 获取电影详情信息
+ */
+const fetchMovieDetail = async (movieId) => {
+  try {
+    const response = await apiService.post('/api/get_movie', {
+      movie_id: Number(movieId)
+    });
+    
+    if (response.success) {
+      return response;
+    } else {
+      console.error('获取电影详情失败:', response.message);
+      return null;
+    }
+  } catch (error) {
+    console.error('获取电影详情请求失败:', error);
+    return null;
+  }
+};
+
+/**
+ * 显示评分记录详情
+ */
+const showRecordDetail = async (record) => {
+  try {
+    selectedRecord.value = record;
+    
+    // 获取电影详情
+    const movieDetail = await fetchMovieDetail(record.movie_id);
+    if (movieDetail) {
+      selectedRecordMovie.value = movieDetail;
+    } else {
+      // 如果获取详情失败，使用记录中的基本信息
+      selectedRecordMovie.value = {
+        movie_name: record.movie_name,
+        release_year: '未知',
+        avg_rating: '未知',
+        vote_count: '未知',
+        short_comment: '暂无简介'
+      };
+    }
+  } catch (error) {
+    console.error('显示记录详情失败:', error);
+  }
+};
+
+/**
+ * 更新评分记录
+ */
+const updateRecordRating = async (record, event) => {
+  const newRating = event.target.value;
+  
+  if (!newRating || newRating === record.rating) return;
+  
+  try {
+    // 调用评分接口
+    const response = await apiService.post('/api/judge', {
+      user_id: Number(userInfo.value.user_id),
+      movie_id: Number(record.movie_id),
+      rating: parseFloat(newRating)
+    });
+    
+    if (response.success) {
+      console.log('更新评分成功');
+      // 更新本地记录
+      record.rating = newRating;
+      // 更新用户评分状态
+      userRatings.value[record.movie_id] = newRating;
+      
+      // 刷新记录列表
+      await fetchRatingRecords();
+    } else {
+      console.error('更新评分失败:', response.message);
+      // 恢复原值
+      event.target.value = record.rating;
+    }
+  } catch (error) {
+    console.error('更新评分请求失败:', error);
+    // 恢复原值
+    event.target.value = record.rating;
+  }
+};
+
+/**
+ * 格式化日期
+ */
+const formatDate = (timestamp) => {
+  if (!timestamp) return '未知时间';
+  
+  try {
+    const date = new Date(timestamp);
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (error) {
+    return timestamp;
+  }
+};
+
+/**
+ * 删除评分记录
+ */
+const deleteRatingRecord = async (record) => {
+  if (!confirm('确定要删除这条评分记录吗？此操作不可撤销。')) {
+    return;
+  }
+  
+  try {
+    isDeletingRecord.value = true;
+    
+    const response = await apiService.post('/api/delete_judge', {
+      user_id: Number(userInfo.value.user_id),
+      movie_id: Number(record.movie_id)
+    });
+    
+    if (response.success) {
+      console.log('删除评分记录成功');
+      
+      // 从本地记录中移除
+      const index = ratingRecords.value.findIndex(
+        r => r.movie_id === record.movie_id && r.timestamp === record.timestamp
+      );
+      if (index > -1) {
+        ratingRecords.value.splice(index, 1);
+      }
+      
+      // 从用户评分状态中移除
+      delete userRatings.value[record.movie_id];
+      
+      // 关闭详情模态框
+      selectedRecord.value = null;
+      selectedRecordMovie.value = null;
+      
+      // 显示成功消息
+      alert('评分记录删除成功！');
+    } else {
+      console.error('删除评分记录失败:', response.message);
+      alert('删除失败：' + (response.message || '请稍后重试'));
+    }
+  } catch (error) {
+    console.error('删除评分记录请求失败:', error);
+    alert('删除失败：网络错误，请检查连接后重试');
+  } finally {
+    isDeletingRecord.value = false;
+  }
+};
+
+/**
+ * 处理评分记录模态框关闭
+ */
+const handleRatingRecordsModalClose = () => {
+  showRatingRecordsModal.value = false;
+  selectedRecord.value = null;
+  selectedRecordMovie.value = null;
+  recordsError.value = '';
+};
 
 /**
  * 退出登录
@@ -1364,6 +1708,148 @@ onUnmounted(() => {
   .user-menu-btn {
     padding: 6px 10px;
     font-size: 13px;
+  }
+}
+
+/* 评分记录模态框样式 */
+.rating-records-modal {
+  max-width: 700px;
+}
+
+.records-subtitle {
+  margin: 8px 0 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.records-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.record-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.record-item:hover {
+  border-color: #667eea;
+  background: #f8fafc;
+}
+
+.record-main {
+  flex: 1;
+}
+
+.record-movie-name {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.record-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.record-rating {
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.record-date {
+  color: #64748b;
+}
+
+.record-arrow {
+  color: #94a3b8;
+}
+
+.empty-records {
+  text-align: center;
+  padding: 40px 20px;
+  color: #64748b;
+}
+
+.empty-subtitle {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.record-detail-badge {
+  background: #f59e0b;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .record-meta {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .record-item {
+    padding: 12px;
+  }
+}
+
+/* 评分记录详情模态框的底部样式 */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 20px 30px 30px;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 0;
+}
+
+.delete-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.delete-btn:disabled {
+  background: #fca5a5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .modal-footer {
+    padding: 16px 24px 24px;
+  }
+  
+  .delete-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>
