@@ -820,6 +820,7 @@ const showRecordDetail = async (record) => {
     selectedRecord.value = record;
     
     // 获取电影详情
+    console.log('显示记录详情:', record);
     const movieDetail = await fetchMovieDetail(record.movie_id);
     if (movieDetail) {
       selectedRecordMovie.value = movieDetail;

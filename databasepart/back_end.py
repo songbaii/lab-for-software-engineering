@@ -654,13 +654,11 @@ def get_record():
                 }
                 for row in results
             ]
-            # 转为 JSON 字符串
 
-            json_str = json.dumps(json_list, ensure_ascii=False)
             return jsonify({
                 'success': True,
                 'message': "成功返回用户评分记录",
-                'records': json_str
+                'records': json_list
             }), 200
     except Exception as e:
         print(f"发生错误{e}")
@@ -703,7 +701,8 @@ def get_movie():
 
         try:
             movie_id = int(movie_id)
-        except Exception:
+        except Exception as e:
+            print(f"出现错误：{e}, movie_id:{movie_id}")
             return jsonify({
                 'success': False,
                 'message': "电影id输入存在问题"
