@@ -671,7 +671,7 @@ def get_movie():
     """
     获取电影详情接口
     接受的json格式:{"movie_id": "电影id" number类型}
-    返回的json格式:{"movie_name": "电影名称" string类型, "release_year": "发行年份" number类型, "genre_list": "所属类别" 数组类型, "avg_rating": "平均分" number类型, "vote_count": "投票人数" number类型, "short_comment": "AI短评" string类型, "success": "修改结果" boolean类型， "message": "提示信息" string类型}
+    返回的json格式:{"movie_name": "电影名称" string类型, "release_year": "发行年份" number类型, "avg_rating": "平均分" number类型, "vote_count": "投票人数" number类型, "short_comment": "AI短评" string类型, "success": "修改结果" boolean类型， "message": "提示信息" string类型}
     """
     try:
         if not request.is_json:
@@ -718,11 +718,6 @@ def get_movie():
 
         movie_name = movie.movie_name
         release_year = movie.release_year
-        movie_genre = MovieGenre.query.filter_by(movie_id=movie_id).all()
-        genre_list = []
-        for genre in movie_genre:
-            genre_name = GenreTable.query.filter_by(genre_id=genre.genre_id).first().genre_name
-            genre_list.append(genre_name)
         movie_status = MovieStats.query.filter_by(movie_id=movie_id).first()
         avg_rating = movie_status.avg_rating
         vote_count = movie_status.vote_count
@@ -732,7 +727,6 @@ def get_movie():
             'message': "成功查询到电影的信息",
             'movie_name': movie_name,
             'release_year': release_year,
-            'genre_list': genre_list,
             'avg_rating': avg_rating,
             'vote_count': vote_count,
             'short_comment': short_comment
@@ -746,9 +740,95 @@ def delete_judge():
     """
     删除评分记录
     接受的json格式:{"movie_id": "电影id" number类型 "user_id": "用户id" number类型}
-    返回的json格式:{"success": "删除结果" boolean类型， "message": "提示信息" string类型， }
-
+    返回的json格式:{"success": "删除结果" boolean类型， "message": "提示信息" string类型}
     """
+    if not request.is_json:
+        return jsonify({
+            'success': False,
+            'message': "数据非json错误"
+        }), 400
+
+    data = request.get_json()
+
+    if not isinstance(data, dict):
+        return jsonify({
+            'success': False,
+            'message': "数据非字典错误"
+        }), 400
+
+    if 'user_id' not in data or 'movie_id' not in data:
+        return jsonify({
+            'success': False,
+            'message': "属性缺失"
+        }), 400
+
+    user_id = str(data.get('user_id')).strip()
+    movie_id = str(data.get('movie_id')).strip()
+
+    if not movie_id:
+        return jsonify({
+            'success': False,
+            'message': "电影id不能为空"
+        }), 400
+
+    if not user_id:
+        return jsonify({
+            'success': False,
+            'message': "用户id不能为空"
+        })
+
+    try:
+        movie_id = int(movie_id)
+    except Exception:
+        return jsonify({
+            'success': False,
+            'message': "电影id输入存在问题"
+        }), 400
+
+    try:
+        user_id = int(user_id)
+    except Exception:
+        return jsonify({
+            'success': False,
+            'message': "用户id输入存在问题"
+        }), 400
+
+    user = User.query.filter_by(user_id=user_id).first()
+    movie = Movie.query.filter_by(movie_id=movie_id).first()
+
+    if not user:
+        return jsonify({
+            'success': False,
+            'message': "不存在该用户"
+        }), 400
+
+    if not movie:
+        return jsonify({
+            'success': False,
+            'message': "不存在这一部电影"
+        }), 400
+
+    judge = UserJudge.query.filter_by(user_id=user_id, movie_id=movie_id).first()
+    if not judge:
+        return jsonify({
+            'success': True,
+            'message': "该用户不存在对这部电影的评分记录"
+        }), 200
+    else:
+        db.session.delete(judge)
+        db.session.commit()
+        now_movie_judge = UserJudge.query.filter_by(movie_id=movie_id).all()
+        ratings = [float(judge.rating) for judge in now_movie_judge]  # 转换为float
+        avg_rating = sum(ratings) / len(ratings)
+        now_stats = MovieStats.query.filter_by(movie_id=movie_id).first()
+        now_stats.avg_rating = avg_rating
+        now_stats.vote_count = len(now_movie_judge)
+        db.session.merge(now_stats)
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': "删除记录成功"
+        })
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

@@ -401,11 +401,11 @@ class Testlike:
         db.session.delete(test_user)
         db.session.commit()
 
-"""class TestMovie:
+class TestMovie:
     def test_get_movie(self, client):
         test_movie = Movie.query.first()
         responses = client.post('/api/get_movie', json={'movie_id': test_movie.movie_id})
         print(f"Response status: {responses.status_code}")
         print(f"Response JSON: {responses.get_json()}")
         assert responses.status_code == 200
-        assert responses.get_json()['success'] == True"""
+        assert responses.get_json()['success'] == True
